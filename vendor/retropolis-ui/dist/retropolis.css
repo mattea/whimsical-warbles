@@ -1,0 +1,1445 @@
+/* Retropolis design system — assembled stylesheet. Do not edit dist/ directly. */
+
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/fredoka-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fredoka';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/fredoka-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gochi Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/gochi-hand-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/nunito-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/nunito-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Patrick Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/patrick-hand-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/silkscreen-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Silkscreen';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/silkscreen-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/vt323-400.woff2') format('woff2');
+}
+
+/* ============================================================================
+   Retropolis — Design Tokens
+   A whimsical-but-legible system evoking the golden age of the personal web.
+   Purple-forward. Chunky chrome. Candy accents. All tokens live on :root, so
+   components are styled by importing the stylesheet — no provider required.
+   ========================================================================== */
+
+:root {
+  /* --- Core palette: purple is home base ------------------------------- */
+  --rp-violet-50:  #f6f0ff;
+  --rp-violet-100: #ede3ff;
+  --rp-violet-200: #d8bfff;
+  --rp-violet-300: #bd93ff;
+  --rp-violet-400: #9a5cff;
+  --rp-violet-500: #7b2ff7;   /* primary */
+  --rp-violet-600: #6621d6;
+  --rp-violet-700: #4c1d95;
+  --rp-violet-800: #35146b;
+  --rp-violet-900: #1f0b45;
+
+  /* GeoCities-era signature purple, kept as a named nod */
+  --rp-rebecca: #663399;
+
+  /* --- Candy accents (the neighborhood) ------------------------------- */
+  --rp-magenta:  #ff2e97;   /* hot pink */
+  --rp-magenta-dark: #c9186e;
+  --rp-teal:     #00b3b3;   /* Win95 desktop teal, brightened */
+  --rp-teal-dark:#007a7a;
+  --rp-cyan:     #22d3ee;
+  --rp-lime:     #8bd450;
+  --rp-lime-dark:#5a9e2a;
+  --rp-sunshine: #ffcf33;   /* under-construction yellow */
+  --rp-sunshine-dark: #d9a400;
+  --rp-tangerine:#ff8c42;
+  --rp-sky:      #3b82f6;    /* hyperlink blue */
+  --rp-visited:  #8b2fc9;    /* visited-link purple */
+
+  /* --- Chrome & neutrals (Win95 silver bevels) ------------------------ */
+  --rp-white:    #ffffff;
+  --rp-paper:    #faf5ff;    /* faint lavender page */
+  --rp-parchment:#fffdf5;
+  --rp-silver:   #c8c4d0;    /* purple-tinted chrome face */
+  --rp-silver-light: #e9e6f0;
+  --rp-silver-dark:  #8f8aa0;
+  --rp-slate:    #5b5470;
+  --rp-ink:      #1c1030;    /* deep purple-black text */
+  --rp-ink-soft: #3a2c58;
+  --rp-shadow:   #0d0620;
+
+  /* --- Semantic surfaces ---------------------------------------------- */
+  --rp-bg:            var(--rp-paper);
+  --rp-surface:       var(--rp-white);
+  --rp-surface-alt:   var(--rp-violet-50);
+  --rp-surface-chrome:var(--rp-silver);
+  --rp-text:          var(--rp-ink);
+  --rp-text-muted:    var(--rp-slate);
+  --rp-text-invert:   var(--rp-white);
+  --rp-border:        var(--rp-ink);        /* the signature hard outline */
+  --rp-accent:        var(--rp-violet-500);
+  --rp-accent-ink:    var(--rp-white);
+
+  /* --- Bevel edges (the 3D chunk) ------------------------------------- */
+  --rp-bevel-hi:   #ffffff;             /* top-left highlight */
+  --rp-bevel-hi-2: var(--rp-silver-light);
+  --rp-bevel-lo:   var(--rp-silver-dark);
+  --rp-bevel-lo-2: var(--rp-ink);       /* bottom-right shadow */
+
+  /* --- Outlines & radii ----------------------------------------------- */
+  --rp-outline:      2px solid var(--rp-border);
+  --rp-outline-thick:3px solid var(--rp-border);
+  --rp-radius-none:  0px;
+  --rp-radius-sm:    3px;
+  --rp-radius-md:    7px;
+  --rp-radius-lg:    12px;
+  --rp-radius-pill:  999px;
+
+  /* --- Hard sticker shadows (no blur = flat 90s) ---------------------- */
+  --rp-shadow-hard:   3px 3px 0 0 var(--rp-ink);
+  --rp-shadow-hard-lg:5px 5px 0 0 var(--rp-ink);
+  --rp-shadow-pop:    3px 3px 0 0 var(--rp-magenta);
+  --rp-shadow-soft:   0 4px 0 0 rgba(28, 16, 48, 0.15);
+  --rp-shadow-float:  0 6px 20px rgba(28, 16, 48, 0.35);
+
+  /* --- Spacing (4px base) --------------------------------------------- */
+  --rp-space-2xs: 2px;
+  --rp-space-xs:  4px;
+  --rp-space-sm:  8px;
+  --rp-space-md:  12px;
+  --rp-space-lg:  16px;
+  --rp-space-xl:  24px;
+  --rp-space-2xl: 32px;
+  --rp-space-3xl: 48px;
+
+  /* --- Typography ----------------------------------------------------- */
+  --rp-font-display: 'Fredoka', 'Comic Sans MS', system-ui, sans-serif;
+  --rp-font-body:    'Nunito', Verdana, Geneva, Tahoma, sans-serif;
+  --rp-font-mono:    'VT323', 'Courier New', monospace;
+  --rp-font-pixel:   'Silkscreen', 'Courier New', monospace;
+
+  --rp-text-2xs: 11px;
+  --rp-text-xs:  13px;
+  --rp-text-sm:  15px;
+  --rp-text-md:  17px;
+  --rp-text-lg:  20px;
+  --rp-text-xl:  26px;
+  --rp-text-2xl: 34px;
+  --rp-text-3xl: 46px;
+
+  --rp-leading-tight: 1.15;
+  --rp-leading-normal:1.5;
+
+  --rp-weight-normal: 400;
+  --rp-weight-bold:   600;
+
+  /* --- Motion --------------------------------------------------------- */
+  --rp-dur-fast:  90ms;
+  --rp-dur-med:   160ms;
+  --rp-ease-pop:  cubic-bezier(0.34, 1.56, 0.64, 1);  /* overshoot bounce */
+
+  /* --- Fun extras ----------------------------------------------------- */
+  --rp-rainbow: linear-gradient(90deg,
+    #ff2e97 0%, #ff8c42 20%, #ffcf33 40%,
+    #8bd450 60%, #22d3ee 80%, #7b2ff7 100%);
+  --rp-starfield: radial-gradient(circle at 50% 50%, var(--rp-violet-800), var(--rp-violet-900));
+  --rp-z-overlay: 1000;
+  --rp-z-toast:   1100;
+}
+
+/* Optional CRT/terminal dark theme — opt in with data-rp-theme="crt" on any
+   wrapper. Components render fine without it; this just re-skins surfaces. */
+[data-rp-theme="crt"] {
+  --rp-bg:          #06110a;
+  --rp-surface:     #0a1f14;
+  --rp-surface-alt: #0d2a1a;
+  --rp-surface-chrome: #123322;
+  --rp-text:        #6dff9e;
+  --rp-text-muted:  #3fae6a;
+  --rp-text-invert: #06110a;
+  --rp-border:      #6dff9e;
+  --rp-accent:      #6dff9e;
+  --rp-accent-ink:  #06110a;
+  --rp-bevel-hi:    #1c4a30;
+  --rp-bevel-hi-2:  #123322;
+  --rp-bevel-lo:    #0a2416;
+  --rp-bevel-lo-2:  #06110a;
+  --rp-shadow-hard: 3px 3px 0 0 #041f10;
+}
+
+/* ============================================================================
+   Retropolis — Base primitives, bevels, and keyframes shared by components.
+   ========================================================================== */
+
+/* The classic Win95 chunk: a raised 3D edge built from two-tone borders. */
+.rp-bevel-raised {
+  border-style: solid;
+  border-width: 2px;
+  border-top-color: var(--rp-bevel-hi);
+  border-left-color: var(--rp-bevel-hi);
+  border-right-color: var(--rp-bevel-lo-2);
+  border-bottom-color: var(--rp-bevel-lo-2);
+  box-shadow: inset 1px 1px 0 var(--rp-bevel-hi-2), inset -1px -1px 0 var(--rp-bevel-lo);
+}
+
+/* Pressed / inset — inputs, wells, active buttons. */
+.rp-bevel-sunken {
+  border-style: solid;
+  border-width: 2px;
+  border-top-color: var(--rp-bevel-lo-2);
+  border-left-color: var(--rp-bevel-lo-2);
+  border-right-color: var(--rp-bevel-hi);
+  border-bottom-color: var(--rp-bevel-hi);
+  box-shadow: inset 1px 1px 0 var(--rp-bevel-lo), inset -1px -1px 0 var(--rp-bevel-hi-2);
+}
+
+/* Silver chrome face used by windows, menus, toolbars. */
+.rp-chrome {
+  background: var(--rp-surface-chrome);
+  color: var(--rp-text);
+}
+
+/* Every Retropolis surface uses the body font + text color by default. */
+.rp-root,
+.rp-surface {
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+  line-height: var(--rp-leading-normal);
+}
+
+/* --- Keyframes ------------------------------------------------------------ */
+@keyframes rp-spin { to { transform: rotate(360deg); } }
+@keyframes rp-blink { 50% { opacity: 0; } }
+@keyframes rp-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-25%); }
+}
+@keyframes rp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rp-rainbow-slide {
+  to { background-position: 200% 0; }
+}
+@keyframes rp-pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes rp-star-twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.3) rotate(15deg); opacity: 0.7; }
+}
+
+/* Respect users who ask for less motion — legibility over spectacle. */
+@media (prefers-reduced-motion: reduce) {
+  .rp-marquee__track,
+  .rp-divider--rainbow,
+  .rp-badge--new,
+  .rp-spinner__glyph,
+  .rp-star-twinkle {
+    animation: none !important;
+  }
+}
+
+/* ============================================================================
+   Retropolis — SKETCH theme (opt in with data-rp-theme="sketch")
+   A hand-drawn, pencil-on-notebook-paper mood: marker fonts, wobbly ink lines,
+   and a turbulence filter that gives every icon a drawn-by-hand shake. Keeps the
+   candy palette (purple still home base) but on warm paper with graphite ink.
+   Components are unchanged — this is pure theme CSS layered on the token system.
+   ========================================================================== */
+
+[data-rp-theme="sketch"] {
+  /* Hand-drawn type — Patrick Hand reads small, so nudge the scale up. */
+  --rp-font-display: 'Gochi Hand', 'Comic Sans MS', cursive;
+  --rp-font-body: 'Patrick Hand', 'Comic Sans MS', cursive;
+  --rp-font-pixel: 'Patrick Hand', 'Comic Sans MS', cursive;
+  --rp-font-mono: 'Patrick Hand', monospace;
+  --rp-text-2xs: 12px;  --rp-text-xs: 14px;  --rp-text-sm: 17px;
+  --rp-text-md: 19px;   --rp-text-lg: 23px;  --rp-text-xl: 29px;
+  --rp-text-2xl: 38px;  --rp-text-3xl: 50px;
+  --rp-weight-bold: 400;
+
+  /* Warm notebook paper + soft graphite ink. */
+  --rp-bg: #fbfaf3;
+  --rp-paper: #fbfaf3;
+  --rp-parchment: #fffef7;
+  --rp-surface: #fffdf6;
+  --rp-surface-alt: #f4f0ff;
+  --rp-surface-chrome: #efece2;
+  --rp-ink: #2c2540;
+  --rp-ink-soft: #4a4066;
+  --rp-text: #2c2540;
+  --rp-text-muted: #6a6280;
+  --rp-border: #2c2540;
+  --rp-silver: #ece7dd;
+  --rp-silver-dark: #b9b2a4;
+
+  /* Sketchy graphite shadows — softer and looser than the sticker shadows. */
+  --rp-shadow-hard: 2px 3px 0 0 rgba(44, 37, 64, 0.5);
+  --rp-shadow-hard-lg: 3px 4px 0 0 rgba(44, 37, 64, 0.45);
+  --rp-outline: 2px solid var(--rp-border);
+}
+
+/* Notebook-paper ruling on the themed root. */
+[data-rp-theme="sketch"] {
+  background-color: var(--rp-bg);
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0 31px, rgba(120, 110, 170, 0.14) 31px 32px);
+}
+
+/* --- Pencil wobble on every icon (turbulence + displacement, inline data-URI) --- */
+[data-rp-theme="sketch"] .rp-icon {
+  filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><filter id='r'><feTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='2' seed='7' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='2.4'/></filter></svg>#r");
+}
+
+/* --- Flatten the 3D bevels into a single drawn line --- */
+[data-rp-theme="sketch"] .rp-bevel-raised,
+[data-rp-theme="sketch"] .rp-bevel-sunken {
+  border-color: var(--rp-border);
+  box-shadow: none;
+}
+
+/* --- Wobbly boxes: uneven border-radius makes a rectangle look sketched.
+   Two patterns, assigned by component so adjacent boxes don't rhyme. --- */
+[data-rp-theme="sketch"] .rp-card,
+[data-rp-theme="sketch"] .rp-alert,
+[data-rp-theme="sketch"] .rp-toast,
+[data-rp-theme="sketch"] .rp-window,
+[data-rp-theme="sketch"] .rp-tabs__panel,
+[data-rp-theme="sketch"] .rp-accordion__item,
+[data-rp-theme="sketch"] .rp-menu__panel,
+[data-rp-theme="sketch"] .rp-table__frame,
+[data-rp-theme="sketch"] .rp-dialog,
+[data-rp-theme="sketch"] .rp-field__well {
+  border-radius: 14px 235px 18px 255px / 245px 16px 235px 14px;
+}
+[data-rp-theme="sketch"] .rp-btn,
+[data-rp-theme="sketch"] .rp-tabs__tab,
+[data-rp-theme="sketch"] .rp-badge,
+[data-rp-theme="sketch"] .rp-select__well,
+[data-rp-theme="sketch"] .rp-avatar,
+[data-rp-theme="sketch"] .rp-check__box,
+[data-rp-theme="sketch"] .rp-tooltip__bubble {
+  border-radius: 235px 18px 225px 15px / 15px 225px 18px 235px;
+}
+
+/* --- Hand-placed jitter: small stickers sit slightly askew --- */
+[data-rp-theme="sketch"] .rp-badge { transform: rotate(-2.2deg); }
+[data-rp-theme="sketch"] .rp-tag { transform: rotate(-1deg); }
+[data-rp-theme="sketch"] .rp-btn:not(:active) { transform: rotate(-0.6deg); }
+[data-rp-theme="sketch"] .rp-card { transform: rotate(-0.35deg); }
+[data-rp-theme="sketch"] .rp-alert { transform: rotate(0.3deg); }
+
+/* Tabs: hand-drawn folder tabs keep only the top corners wobbly. */
+[data-rp-theme="sketch"] .rp-tabs__tab {
+  border-radius: 235px 18px 4px 4px / 40px 40px 4px 4px;
+  border-bottom: none;
+}
+
+/* Dashed/solid dividers become looser pencil strokes. */
+[data-rp-theme="sketch"] .rp-divider--solid { border-top-width: 3px; }
+[data-rp-theme="sketch"] .rp-divider--dashed { border-top-style: dashed; border-top-width: 3px; }
+
+/* Underlined links get a wavier, marker underline. */
+[data-rp-theme="sketch"] .rp-link {
+  text-decoration-thickness: 2px;
+  text-decoration-style: wavy;
+}
+
+/* Focus ring stays legible on paper. */
+[data-rp-theme="sketch"] .rp-btn:focus-visible,
+[data-rp-theme="sketch"] .rp-field__well:focus-within {
+  outline-color: var(--rp-magenta);
+}
+
+
+/* /home/user/design-system/src/components/Accordion/Accordion.css */
+.rp-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+}
+.rp-accordion__item {
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-md);
+  overflow: hidden;
+  background: var(--rp-surface);
+  box-shadow: var(--rp-shadow-hard);
+}
+.rp-accordion__head {
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: var(--rp-violet-100);
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-md);
+  color: var(--rp-ink);
+  padding: 11px 14px;
+  cursor: pointer;
+}
+.rp-accordion__item.is-open .rp-accordion__head {
+  background: var(--rp-violet-500);
+  color: var(--rp-white);
+}
+.rp-accordion__title { flex: 1; min-width: 0; }
+.rp-accordion__chevron { font-size: 11px; }
+.rp-accordion__panel {
+  padding: var(--rp-space-lg);
+  font-size: var(--rp-text-sm);
+  line-height: var(--rp-leading-normal);
+  border-top: 2px dashed var(--rp-silver-dark);
+}
+
+
+/* /home/user/design-system/src/components/Alert/Alert.css */
+.rp-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--rp-space-md);
+  padding: var(--rp-space-md) var(--rp-space-lg);
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-md);
+  box-shadow: var(--rp-shadow-hard);
+  font-family: var(--rp-font-body);
+  color: var(--rp-ink);
+}
+.rp-alert--info    { background: #d7ecff; }
+.rp-alert--success { background: #ddf5c6; }
+.rp-alert--warning { background: #fff0bf; }
+.rp-alert--danger  { background: #ffd6e6; }
+.rp-alert__icon { flex: none; margin-top: 1px; }
+.rp-alert__content { flex: 1; min-width: 0; }
+.rp-alert__title {
+  margin: 0 0 2px;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-md);
+}
+.rp-alert__body { font-size: var(--rp-text-sm); line-height: var(--rp-leading-normal); }
+.rp-alert__close {
+  flex: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--rp-radius-sm);
+}
+.rp-alert__close:hover { background: rgba(28, 16, 48, 0.12); }
+
+
+/* /home/user/design-system/src/components/Avatar/Avatar.css */
+.rp-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rp-violet-100);
+  color: var(--rp-violet-700);
+  border-radius: var(--rp-radius-md);
+  overflow: visible;
+  flex: none;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+}
+.rp-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--rp-radius-md) - 3px);
+  display: block;
+}
+.rp-avatar--sm { width: 32px; height: 32px; font-size: var(--rp-text-xs); }
+.rp-avatar--md { width: 44px; height: 44px; font-size: var(--rp-text-md); }
+.rp-avatar--lg { width: 64px; height: 64px; font-size: var(--rp-text-xl); }
+.rp-avatar__dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--rp-radius-pill);
+  background: var(--rp-lime);
+  border: 2px solid var(--rp-ink);
+}
+
+
+/* /home/user/design-system/src/components/Badge/Badge.css */
+.rp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--rp-font-pixel);
+  font-size: var(--rp-text-2xs);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--rp-white);
+  background: var(--rp-violet-500);
+  border: 2px solid var(--rp-ink);
+  border-radius: var(--rp-radius-sm);
+  padding: 4px 6px;
+  box-shadow: var(--rp-shadow-hard);
+}
+.rp-badge--violet   { background: var(--rp-violet-500); color: #fff; }
+.rp-badge--magenta  { background: var(--rp-magenta);    color: #fff; }
+.rp-badge--teal     { background: var(--rp-teal);       color: #fff; }
+.rp-badge--lime     { background: var(--rp-lime);       color: var(--rp-ink); }
+.rp-badge--sunshine { background: var(--rp-sunshine);   color: var(--rp-ink); }
+.rp-badge--slate    { background: var(--rp-slate);      color: #fff; }
+.rp-badge--new {
+  animation: rp-star-twinkle 0.9s steps(2, end) infinite;
+  transform-origin: center;
+}
+
+
+/* /home/user/design-system/src/components/Button/Button.css */
+.rp-btn {
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rp-space-sm);
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-md);
+  background: var(--rp-violet-500);
+  color: var(--rp-white);
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: var(--rp-shadow-hard);
+  transition: transform var(--rp-dur-fast) var(--rp-ease-pop),
+    box-shadow var(--rp-dur-fast) ease, filter var(--rp-dur-fast) ease;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.rp-btn:hover { filter: brightness(1.06) saturate(1.1); }
+.rp-btn:focus-visible {
+  outline: 3px dashed var(--rp-magenta);
+  outline-offset: 2px;
+}
+/* Press the sticker into the page. */
+.rp-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--rp-ink);
+}
+.rp-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.6) opacity(0.6);
+  box-shadow: 2px 2px 0 0 var(--rp-silver-dark);
+  transform: none;
+}
+
+/* Sizes */
+.rp-btn--sm { font-size: var(--rp-text-xs); padding: 6px 12px; }
+.rp-btn--md { font-size: var(--rp-text-sm); padding: 9px 18px; }
+.rp-btn--lg { font-size: var(--rp-text-lg); padding: 13px 26px; }
+.rp-btn--block { display: flex; width: 100%; }
+
+/* Variants */
+.rp-btn--primary  { background: var(--rp-violet-500); color: #fff; }
+.rp-btn--danger   { background: var(--rp-magenta);    color: #fff; }
+.rp-btn--sunshine { background: var(--rp-sunshine);   color: var(--rp-ink); }
+.rp-btn--secondary {
+  background: var(--rp-silver);
+  color: var(--rp-ink);
+}
+.rp-btn--ghost {
+  background: var(--rp-surface);
+  color: var(--rp-violet-600);
+  box-shadow: none;
+}
+.rp-btn--ghost:active { transform: none; }
+.rp-btn--ghost:hover { background: var(--rp-violet-50); }
+
+.rp-btn__label { display: inline-block; }
+
+
+/* /home/user/design-system/src/components/Card/Card.css */
+.rp-card {
+  background: var(--rp-surface);
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-md);
+  box-shadow: var(--rp-shadow-hard-lg);
+  overflow: hidden;
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+}
+.rp-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  padding: 10px 14px;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-md);
+  color: var(--rp-white);
+  border-bottom: var(--rp-outline);
+}
+.rp-card__header--violet   { background: var(--rp-violet-500); }
+.rp-card__header--magenta  { background: var(--rp-magenta); }
+.rp-card__header--teal     { background: var(--rp-teal); }
+.rp-card__header--sunshine { background: var(--rp-sunshine); color: var(--rp-ink); }
+.rp-card__title { flex: 1; min-width: 0; }
+.rp-card__body { padding: var(--rp-space-lg); }
+.rp-card__footer {
+  padding: 10px 16px;
+  border-top: 2px dashed var(--rp-silver-dark);
+  background: var(--rp-violet-50);
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+}
+
+
+/* /home/user/design-system/src/components/Checkbox/Checkbox.css */
+.rp-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.rp-check__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.rp-check__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--rp-white);
+  border-radius: var(--rp-radius-sm);
+  flex: none;
+}
+.rp-check__tick { opacity: 0; transform: scale(0.4); transition: transform var(--rp-dur-fast) var(--rp-ease-pop), opacity var(--rp-dur-fast) ease; }
+.rp-check__input:checked + .rp-check__box .rp-check__tick { opacity: 1; transform: scale(1); }
+.rp-check__input:checked + .rp-check__box { background: var(--rp-violet-50); }
+.rp-check__input:focus-visible + .rp-check__box { outline: 3px dashed var(--rp-magenta); outline-offset: 2px; }
+.rp-check--disabled { cursor: not-allowed; opacity: 0.55; }
+
+
+/* /home/user/design-system/src/components/Dialog/Dialog.css */
+.rp-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--rp-z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--rp-space-lg);
+  background: repeating-linear-gradient(45deg, rgba(31, 11, 69, 0.72), rgba(31, 11, 69, 0.72) 6px, rgba(53, 20, 107, 0.72) 6px, rgba(53, 20, 107, 0.72) 12px);
+  animation: rp-pop var(--rp-dur-med) ease;
+}
+.rp-dialog {
+  width: min(440px, 100%);
+  border-radius: var(--rp-radius-sm);
+  box-shadow: var(--rp-shadow-float);
+  padding: 3px;
+  animation: rp-pop var(--rp-dur-med) var(--rp-ease-pop);
+}
+.rp-dialog__bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px 5px 8px;
+  background: linear-gradient(90deg, var(--rp-violet-700), var(--rp-violet-400));
+  color: var(--rp-white);
+  border-radius: 2px;
+}
+.rp-dialog__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+}
+.rp-dialog__close {
+  width: 22px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rp-magenta);
+  color: #fff;
+  font-family: var(--rp-font-mono);
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.rp-dialog__body {
+  background: var(--rp-surface);
+  border: 2px solid var(--rp-silver-dark);
+  margin-top: 3px;
+  border-radius: 2px;
+  padding: var(--rp-space-lg);
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+  font-size: var(--rp-text-sm);
+  line-height: var(--rp-leading-normal);
+}
+.rp-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--rp-space-sm);
+  padding: var(--rp-space-md) 3px 3px;
+}
+
+
+/* /home/user/design-system/src/components/Divider/Divider.css */
+.rp-divider {
+  flex: 1;
+  border: none;
+  height: 6px;
+  margin: var(--rp-space-md) 0;
+  border-radius: var(--rp-radius-pill);
+}
+.rp-divider--rainbow {
+  background: var(--rp-rainbow);
+  background-size: 200% 100%;
+  border: 2px solid var(--rp-ink);
+  animation: rp-rainbow-slide 3s linear infinite;
+}
+.rp-divider--solid  { height: 0; border-top: 3px solid var(--rp-ink); }
+.rp-divider--dashed { height: 0; border-top: 3px dashed var(--rp-violet-500); }
+.rp-divider--dotted { height: 0; border-top: 4px dotted var(--rp-magenta); }
+.rp-divider-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-md);
+}
+.rp-divider__label {
+  font-family: var(--rp-font-pixel);
+  font-size: var(--rp-text-2xs);
+  text-transform: uppercase;
+  color: var(--rp-slate);
+  white-space: nowrap;
+}
+
+
+/* /home/user/design-system/src/components/HitCounter/HitCounter.css */
+.rp-counter {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.rp-counter__digits {
+  display: inline-flex;
+  gap: 3px;
+  background: #0b0618;
+  padding: 5px;
+  border-radius: var(--rp-radius-sm);
+}
+.rp-counter__digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 32px;
+  background: #160a30;
+  color: var(--rp-lime);
+  font-family: var(--rp-font-mono);
+  font-size: 26px;
+  line-height: 1;
+  border-radius: 2px;
+  border: 1px solid #2a1550;
+  text-shadow: 0 0 6px var(--rp-lime);
+}
+.rp-counter__label {
+  font-family: var(--rp-font-pixel);
+  font-size: var(--rp-text-2xs);
+  text-transform: uppercase;
+  color: var(--rp-slate);
+  letter-spacing: 0.08em;
+}
+
+
+/* /home/user/design-system/src/components/HyperLink/HyperLink.css */
+.rp-link {
+  color: var(--rp-sky);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  font-family: var(--rp-font-body);
+  font-weight: var(--rp-weight-bold);
+  cursor: pointer;
+  border-radius: 2px;
+}
+.rp-link:hover { color: var(--rp-magenta); background: var(--rp-sunshine); }
+.rp-link:focus-visible { outline: 3px dashed var(--rp-magenta); outline-offset: 2px; }
+.rp-link--visited { color: var(--rp-visited); }
+.rp-link__ext { vertical-align: -1px; margin-left: 2px; }
+
+
+/* /home/user/design-system/src/components/Icon/Icon.css */
+.rp-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex: none;
+}
+.rp-icon--pixel {
+  image-rendering: pixelated;
+}
+
+
+/* /home/user/design-system/src/components/IconButton/IconButton.css */
+.rp-iconbtn {
+  padding: 0;
+  aspect-ratio: 1;
+}
+.rp-iconbtn--sm { width: 30px; height: 30px; }
+.rp-iconbtn--md { width: 40px; height: 40px; }
+.rp-iconbtn--lg { width: 52px; height: 52px; }
+
+
+/* /home/user/design-system/src/components/Input/Input.css */
+/* Shared field scaffolding (Input, Textarea, Select all use .rp-field). */
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+}
+.rp-field__label {
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+}
+.rp-field__well {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--rp-white);
+  border-radius: var(--rp-radius-sm);
+  padding: 0 10px;
+}
+.rp-field__icon { color: var(--rp-slate); }
+.rp-field__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-ink);
+  padding: 9px 2px;
+}
+.rp-field__input::placeholder { color: var(--rp-silver-dark); }
+.rp-field__well:focus-within {
+  outline: 3px dashed var(--rp-violet-400);
+  outline-offset: 1px;
+}
+.rp-field__msg {
+  margin: 0;
+  font-size: var(--rp-text-xs);
+  color: var(--rp-text-muted);
+}
+.rp-field__msg--error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--rp-magenta-dark);
+  font-weight: var(--rp-weight-bold);
+}
+.rp-field--error .rp-field__well {
+  outline: 2px solid var(--rp-magenta);
+  outline-offset: 0;
+}
+
+
+/* /home/user/design-system/src/components/Marquee/Marquee.css */
+.rp-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-sm);
+  background: var(--rp-violet-900);
+  color: var(--rp-sunshine);
+  padding: 7px 0;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-md);
+}
+.rp-marquee__track {
+  display: inline-flex;
+  animation: rp-marquee linear infinite;
+  will-change: transform;
+}
+.rp-marquee--rtl .rp-marquee__track { animation-direction: reverse; }
+.rp-marquee__item { padding: 0 var(--rp-space-xl); }
+.rp-marquee--pause:hover .rp-marquee__track { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-marquee { white-space: normal; text-align: center; }
+  .rp-marquee__track { animation: none; display: block; }
+  .rp-marquee__item:nth-child(2) { display: none; }
+}
+
+
+/* /home/user/design-system/src/components/Menu/Menu.css */
+.rp-menu { position: relative; display: inline-block; }
+.rp-menu__caret { margin-left: 2px; font-size: 11px; }
+.rp-menu__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 190px;
+  z-index: var(--rp-z-overlay);
+  padding: 4px;
+  border-radius: var(--rp-radius-sm);
+  box-shadow: var(--rp-shadow-float);
+  animation: rp-pop var(--rp-dur-fast) var(--rp-ease-pop);
+}
+.rp-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  padding: 8px 10px;
+  border-radius: var(--rp-radius-sm);
+  cursor: pointer;
+}
+.rp-menu__item:hover:not(:disabled) { background: var(--rp-violet-500); color: var(--rp-white); }
+.rp-menu__item--danger { color: var(--rp-magenta-dark); }
+.rp-menu__item--danger:hover:not(:disabled) { background: var(--rp-magenta); color: #fff; }
+.rp-menu__item:disabled { opacity: 0.5; cursor: not-allowed; }
+.rp-menu__spacer { width: 16px; height: 16px; flex: none; }
+.rp-menu__divider { height: 2px; margin: 4px 6px; background: var(--rp-silver-dark); border-radius: 2px; }
+
+
+/* /home/user/design-system/src/components/Progress/Progress.css */
+.rp-progress {
+  position: relative;
+  height: 24px;
+  background: var(--rp-white);
+  border-radius: var(--rp-radius-sm);
+  overflow: hidden;
+  padding: 3px;
+}
+.rp-progress__fill {
+  height: 100%;
+  background: var(--rp-violet-500);
+  border-radius: 2px;
+  transition: width var(--rp-dur-med) ease;
+  min-width: 3px;
+}
+.rp-progress__fill--violet   { background: var(--rp-violet-500); }
+.rp-progress__fill--magenta  { background: var(--rp-magenta); }
+.rp-progress__fill--teal     { background: var(--rp-teal); }
+.rp-progress__fill--lime     { background: var(--rp-lime); }
+.rp-progress__fill--sunshine { background: var(--rp-sunshine); }
+/* Defrag-style discrete blocks. */
+.rp-progress__fill--segmented {
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0,
+    currentColor 12px,
+    transparent 12px,
+    transparent 15px
+  );
+  background-color: transparent;
+}
+.rp-progress__fill--segmented.rp-progress__fill--violet   { color: var(--rp-violet-500); }
+.rp-progress__fill--segmented.rp-progress__fill--magenta  { color: var(--rp-magenta); }
+.rp-progress__fill--segmented.rp-progress__fill--teal     { color: var(--rp-teal); }
+.rp-progress__fill--segmented.rp-progress__fill--lime     { color: var(--rp-lime-dark); }
+.rp-progress__fill--segmented.rp-progress__fill--sunshine { color: var(--rp-sunshine-dark); }
+.rp-progress__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--rp-font-pixel);
+  font-size: var(--rp-text-2xs);
+  color: var(--rp-ink);
+  text-shadow: 0 0 3px var(--rp-white), 0 0 3px var(--rp-white);
+}
+
+
+/* /home/user/design-system/src/components/RadioGroup/RadioGroup.css */
+.rp-radios {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rp-space-sm);
+}
+.rp-radios__legend {
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  padding: 0;
+  margin-bottom: 2px;
+}
+.rp-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  cursor: pointer;
+}
+.rp-radio__input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.rp-radio__dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--rp-radius-pill);
+  background: var(--rp-white);
+  flex: none;
+}
+.rp-radio__dot::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: var(--rp-radius-pill);
+  background: var(--rp-magenta);
+  transform: scale(0);
+  transition: transform var(--rp-dur-fast) var(--rp-ease-pop);
+}
+.rp-radio__input:checked + .rp-radio__dot::after { transform: scale(1); }
+.rp-radio__input:focus-visible + .rp-radio__dot { outline: 3px dashed var(--rp-magenta); outline-offset: 2px; }
+.rp-radio--disabled { cursor: not-allowed; opacity: 0.55; }
+
+
+/* /home/user/design-system/src/components/Select/Select.css */
+.rp-select__well {
+  display: flex;
+  align-items: stretch;
+  background: var(--rp-white);
+  border-radius: var(--rp-radius-sm);
+  overflow: hidden;
+}
+.rp-select__native {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  padding: 9px 8px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.rp-select__well:focus-within { outline: 3px dashed var(--rp-violet-400); outline-offset: 1px; }
+.rp-select__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  border-left: var(--rp-outline);
+  pointer-events: none;
+}
+
+
+/* /home/user/design-system/src/components/Switch/Switch.css */
+.rp-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rp-space-sm);
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.rp-switch__input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.rp-switch__track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 60px;
+  height: 28px;
+  border: var(--rp-outline);
+  border-radius: var(--rp-radius-pill);
+  background: var(--rp-silver);
+  transition: background var(--rp-dur-med) ease;
+  flex: none;
+  font-family: var(--rp-font-pixel);
+  font-size: 8px;
+  color: var(--rp-white);
+}
+.rp-switch__thumb {
+  position: absolute;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--rp-radius-pill);
+  background: var(--rp-white);
+  transition: left var(--rp-dur-med) var(--rp-ease-pop);
+  z-index: 2;
+}
+.rp-switch__on, .rp-switch__off {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.rp-switch__on { left: 8px; opacity: 0; }
+.rp-switch__off { right: 7px; color: var(--rp-slate); }
+.rp-switch__input:checked + .rp-switch__track { background: var(--rp-lime); }
+.rp-switch__input:checked + .rp-switch__track .rp-switch__thumb { left: 34px; }
+.rp-switch__input:checked + .rp-switch__track .rp-switch__on { opacity: 1; }
+.rp-switch__input:checked + .rp-switch__track .rp-switch__off { opacity: 0; }
+.rp-switch__input:focus-visible + .rp-switch__track { outline: 3px dashed var(--rp-magenta); outline-offset: 2px; }
+.rp-switch--disabled { cursor: not-allowed; opacity: 0.55; }
+
+
+/* /home/user/design-system/src/components/Table/Table.css */
+.rp-table__frame {
+  display: inline-block;
+  background: var(--rp-surface);
+  border-radius: var(--rp-radius-sm);
+  overflow: hidden;
+  max-width: 100%;
+}
+.rp-table {
+  border-collapse: collapse;
+  font-family: var(--rp-font-body);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  width: 100%;
+}
+.rp-table__caption {
+  caption-side: top;
+  text-align: left;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-md);
+  padding: 8px 12px;
+  background: var(--rp-violet-500);
+  color: var(--rp-white);
+}
+.rp-table th {
+  background: var(--rp-violet-200);
+  color: var(--rp-ink);
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  padding: 9px 14px;
+  border-bottom: 2px solid var(--rp-ink);
+  white-space: nowrap;
+}
+.rp-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rp-silver);
+}
+.rp-table--zebra tbody tr:nth-child(even) { background: var(--rp-violet-50); }
+.rp-table tbody tr:hover { background: var(--rp-sunshine); }
+.rp-table tbody tr:last-child td { border-bottom: none; }
+
+
+/* /home/user/design-system/src/components/Tabs/Tabs.css */
+.rp-tabs { font-family: var(--rp-font-body); color: var(--rp-text); }
+.rp-tabs__list {
+  display: flex;
+  gap: 4px;
+  padding-left: 6px;
+  position: relative;
+  z-index: 2;
+}
+.rp-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-text);
+  background: var(--rp-silver);
+  border: var(--rp-outline);
+  border-bottom: none;
+  border-radius: var(--rp-radius-md) var(--rp-radius-md) 0 0;
+  padding: 8px 16px;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transform: translateY(3px);
+  transition: transform var(--rp-dur-fast) ease, background var(--rp-dur-fast) ease;
+}
+.rp-tabs__tab:hover:not(:disabled) { background: var(--rp-violet-100); }
+.rp-tabs__tab--active {
+  background: var(--rp-surface);
+  transform: translateY(0);
+  color: var(--rp-accent);
+}
+.rp-tabs__tab:disabled { opacity: 0.5; cursor: not-allowed; }
+.rp-tabs__panel {
+  position: relative;
+  z-index: 1;
+  background: var(--rp-surface);
+  border: var(--rp-outline);
+  border-radius: 0 var(--rp-radius-md) var(--rp-radius-md) var(--rp-radius-md);
+  padding: var(--rp-space-lg);
+  box-shadow: var(--rp-shadow-hard);
+}
+
+
+/* /home/user/design-system/src/components/Tag/Tag.css */
+.rp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-xs);
+  line-height: 1;
+  color: var(--rp-ink);
+  background: var(--rp-violet-200);
+  border: 2px solid var(--rp-ink);
+  border-radius: var(--rp-radius-pill);
+  padding: 5px 11px;
+}
+.rp-tag--violet    { background: var(--rp-violet-200); }
+.rp-tag--magenta   { background: #ffc2e0; }
+.rp-tag--teal      { background: #a6f0f0; }
+.rp-tag--lime      { background: #d6f5b8; }
+.rp-tag--sunshine  { background: #ffe9a6; }
+.rp-tag--tangerine { background: #ffd6bd; }
+.rp-tag__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-right: -3px;
+  cursor: pointer;
+  border-radius: var(--rp-radius-pill);
+}
+.rp-tag__x:hover { background: rgba(28, 16, 48, 0.12); }
+
+
+/* /home/user/design-system/src/components/Textarea/Textarea.css */
+.rp-field__well--area { padding: 8px 10px; align-items: stretch; }
+.rp-field__input--area {
+  resize: vertical;
+  padding: 0;
+  line-height: var(--rp-leading-normal);
+}
+
+
+/* /home/user/design-system/src/components/Toast/Toast.css */
+.rp-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--rp-space-sm);
+  width: min(340px, 100%);
+  padding: 11px 12px;
+  background: var(--rp-surface);
+  border: var(--rp-outline);
+  border-left-width: 8px;
+  border-radius: var(--rp-radius-md);
+  box-shadow: var(--rp-shadow-hard-lg);
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+  animation: rp-pop var(--rp-dur-med) var(--rp-ease-pop);
+}
+.rp-toast--info    { border-left-color: var(--rp-sky); }
+.rp-toast--success { border-left-color: var(--rp-lime-dark); }
+.rp-toast--warning { border-left-color: var(--rp-sunshine-dark); }
+.rp-toast--danger  { border-left-color: var(--rp-magenta); }
+.rp-toast__icon { flex: none; }
+.rp-toast__content { flex: 1; min-width: 0; }
+.rp-toast__title {
+  margin: 0;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+}
+.rp-toast__body { font-size: var(--rp-text-xs); color: var(--rp-text-muted); margin-top: 1px; }
+.rp-toast__close {
+  flex: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--rp-radius-sm);
+}
+.rp-toast__close:hover { background: rgba(28, 16, 48, 0.12); }
+
+
+/* /home/user/design-system/src/components/Tooltip/Tooltip.css */
+.rp-tooltip {
+  position: relative;
+  display: inline-flex;
+}
+.rp-tooltip__bubble {
+  position: absolute;
+  z-index: var(--rp-z-overlay);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity var(--rp-dur-fast) ease, transform var(--rp-dur-fast) var(--rp-ease-pop);
+  background: var(--rp-ink);
+  color: var(--rp-white);
+  font-family: var(--rp-font-body);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-xs);
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: var(--rp-radius-sm);
+  border: 2px solid var(--rp-violet-400);
+  box-shadow: var(--rp-shadow-hard);
+}
+.rp-tooltip:hover .rp-tooltip__bubble,
+.rp-tooltip:focus-within .rp-tooltip__bubble {
+  opacity: 1;
+  transform: scale(1);
+}
+.rp-tooltip--top .rp-tooltip__bubble    { bottom: calc(100% + 8px); left: 50%; translate: -50% 0; }
+.rp-tooltip--bottom .rp-tooltip__bubble { top: calc(100% + 8px); left: 50%; translate: -50% 0; }
+.rp-tooltip--left .rp-tooltip__bubble   { right: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+.rp-tooltip--right .rp-tooltip__bubble  { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+
+
+/* /home/user/design-system/src/components/Window/Window.css */
+.rp-window {
+  border-radius: var(--rp-radius-sm);
+  box-shadow: var(--rp-shadow-float);
+  overflow: hidden;
+  font-family: var(--rp-font-body);
+  color: var(--rp-text);
+  padding: 3px;
+}
+.rp-window__bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 6px 5px 8px;
+  background: linear-gradient(90deg, var(--rp-slate), var(--rp-silver-dark));
+  color: var(--rp-white);
+  border-radius: 2px;
+}
+.rp-window__bar--active {
+  background: linear-gradient(90deg, var(--rp-violet-700), var(--rp-violet-400));
+}
+.rp-window__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--rp-font-display);
+  font-weight: var(--rp-weight-bold);
+  font-size: var(--rp-text-sm);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rp-window__controls { display: inline-flex; gap: 3px; }
+.rp-window__cap {
+  width: 22px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rp-silver);
+  color: var(--rp-ink);
+  font-family: var(--rp-font-mono);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.rp-window__cap:active { transform: translate(1px, 1px); }
+.rp-window__cap--close { background: var(--rp-magenta); color: #fff; }
+.rp-window__body {
+  background: var(--rp-surface);
+  border: 2px solid var(--rp-silver-dark);
+  margin-top: 3px;
+  border-radius: 2px;
+  padding: var(--rp-space-lg);
+}
+.rp-window__status {
+  margin-top: 3px;
+  padding: 4px 8px;
+  background: var(--rp-silver);
+  font-family: var(--rp-font-mono);
+  font-size: var(--rp-text-sm);
+  color: var(--rp-ink-soft);
+  border-radius: 2px;
+}
