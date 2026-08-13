@@ -2,8 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - claude/whimsical-warbles-setup-odk9m5
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -40,6 +41,11 @@ jobs:
           path: ./dist
 
   deploy:
+    # Deploy only from the default branch. GitHub's auto-created github-pages
+    # environment restricts deployments to the default branch, so pushes from
+    # other branches (and pull_request builds) validate via the build job but
+    # do not deploy. Merging to main publishes the site.
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
