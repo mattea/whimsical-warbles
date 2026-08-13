@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import LaunchControl from '../components/LaunchControl.tsx';
+import {
+  Window,
+  Card,
+  Badge,
+  Marquee,
+  Divider,
+  HyperLink,
+  Icon,
+} from '@retropolis/ui';
+---
+
+<Base>
+  <main class="page stack">
+    <Marquee speed={16}>
+      ✦ Welcome to pugglenaut.com — now boarding for low orbit ✦ built with Astro
+      &amp; the Retropolis design system ✦ mind the cosmic dust ✦
+    </Marquee>
+
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title">Pugglenaut</h1>
+      <p class="hero-tagline">
+        A very good dog, in space. This is home base — a whimsical corner of the
+        personal web.
+      </p>
+      <div class="cluster">
+        <Badge tone="magenta" blink>new!</Badge>
+        <Badge tone="teal">v0.1</Badge>
+        <Badge tone="violet">astro + retropolis</Badge>
+      </div>
+    </header>
+
+    <Window title="mission-control.exe" icon="rocket" status="Systems nominal.">
+      <div class="stack">
+        <p style="margin: 0;">
+          The launch bay is powered by an interactive React island — everything
+          else on this page renders to static HTML and ships no JavaScript.
+        </p>
+        <LaunchControl client:visible />
+      </div>
+    </Window>
+
+    <Divider variant="rainbow" label="the neighborhood" />
+
+    <section class="card-grid">
+      <Card title="Logbook" icon="pencil" tone="violet">
+        <p style="margin: 0;">
+          Dispatches from orbit — dev notes, doodles, and the occasional bark
+          into the void.
+        </p>
+      </Card>
+      <Card title="Star Charts" icon="star" tone="teal">
+        <p style="margin: 0;">
+          A growing map of favorite links across the small web. Bring your own
+          telescope.
+        </p>
+      </Card>
+      <Card title="Signal" icon="mail" tone="magenta">
+        <p style="margin: 0;">
+          Say hi:{' '}
+          <HyperLink href="mailto:hello@pugglenaut.com">
+            hello@pugglenaut.com
+          </HyperLink>
+        </p>
+      </Card>
+    </section>
+
+    <Divider variant="dashed" />
+
+    <footer class="site-footer cluster" style="justify-content: center;">
+      <Icon name="heart" size={18} title="made with love" />
+      <span>Made on the small web · {new Date().getFullYear()}</span>
+    </footer>
+  </main>
+</Base>
