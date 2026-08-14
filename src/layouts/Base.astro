@@ -32,6 +32,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:url" content={canonical} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- Apply the saved theme before paint to avoid a flash. Light ("Paper")
+         is the default; CRT is the opt-in dark phosphor theme. With no saved
+         choice we honor the OS preference. -->
+    <script is:inline>
+      (function () {
+        try {
+          var saved = localStorage.getItem('pugglenaut-theme');
+          var crt =
+            saved === 'crt' ||
+            (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (crt) document.documentElement.setAttribute('data-rp-theme', 'crt');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <slot />

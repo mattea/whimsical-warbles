@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import LaunchControl from '../components/LaunchControl.tsx';
+import ThemeToggle from '../components/ThemeToggle.tsx';
 import {
   Window,
   Card,
@@ -14,6 +15,10 @@ import {
 
 <Base>
   <main class="page stack">
+    <div class="cluster" style="justify-content: flex-end;">
+      <ThemeToggle client:load />
+    </div>
+
     <Marquee speed={16}>
       ✦ Welcome to pugglenaut.com — now boarding for low orbit ✦ built with Astro
       &amp; the Retropolis design system ✦ mind the cosmic dust ✦
