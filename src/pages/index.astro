@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import LaunchControl from '../components/LaunchControl.tsx';
+import ThemeToggle from '../components/ThemeToggle.tsx';
 import {
   Window,
   Card,
@@ -14,6 +15,10 @@ import {
 
 <Base>
   <main class="page stack">
+    <div class="cluster" style="justify-content: flex-end;">
+      <ThemeToggle client:load />
+    </div>
+
     <Marquee speed={16}>
       ✦ Welcome to pugglenaut.com — now boarding for low orbit ✦ built with Astro
       &amp; the Retropolis design system ✦ mind the cosmic dust ✦
@@ -22,7 +27,7 @@ import {
     <header class="stack" style="gap: 8px;">
       <h1 class="hero-title">Pugglenaut</h1>
       <p class="hero-tagline">
-        A very good dog, in space. This is home base — a whimsical corner of the
+        A baby platypus, in space. This is home base — a whimsical corner of the
         personal web.
       </p>
       <div class="cluster">
@@ -47,7 +52,7 @@ import {
     <section class="card-grid">
       <Card title="Logbook" icon="pencil" tone="violet">
         <p style="margin: 0;">
-          Dispatches from orbit — dev notes, doodles, and the occasional bark
+          Dispatches from orbit — dev notes, doodles, and the occasional warble
           into the void.
         </p>
       </Card>

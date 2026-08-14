@@ -2,6 +2,24 @@
    design tokens on :root, but intentionally leaves the page shell to the app —
    so we set the background, body font and text color from its tokens here. */
 
+/* Page-level theme hooks. The Retropolis CRT theme (data-rp-theme="crt")
+   remaps the component tokens; these variables extend that to the page shell
+   (background dots, hero color/shadow) so light ("Paper") and CRT stay
+   consistent across the whole page, not just the components. */
+:root {
+  --page-dot-a: var(--rp-violet-200);
+  --page-dot-b: var(--rp-violet-100);
+  --hero-color: var(--rp-violet-700);
+  --hero-shadow: var(--rp-sunshine);
+}
+
+[data-rp-theme="crt"] {
+  --page-dot-a: #0d2a1a;
+  --page-dot-b: #0a1f14;
+  --hero-color: var(--rp-text);
+  --hero-shadow: #041f10;
+}
+
 *,
 *::before,
 *::after {
@@ -17,13 +35,34 @@ body {
   min-height: 100vh;
   font-family: var(--rp-font-body);
   color: var(--rp-text);
-  background-color: var(--rp-paper);
+  background-color: var(--rp-bg);
   background-image:
-    radial-gradient(var(--rp-violet-200) 1.5px, transparent 1.5px),
-    radial-gradient(var(--rp-violet-100) 1.5px, transparent 1.5px);
+    radial-gradient(var(--page-dot-a) 1.5px, transparent 1.5px),
+    radial-gradient(var(--page-dot-b) 1.5px, transparent 1.5px);
   background-position: 0 0, 12px 12px;
   background-size: 24px 24px;
   -webkit-font-smoothing: antialiased;
+}
+
+/* CRT: faint horizontal scanlines + a phosphor glow on the title. Kept subtle
+   so text stays crisp; the overlay never intercepts clicks. */
+[data-rp-theme="crt"] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.14) 0,
+    rgba(0, 0, 0, 0.14) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+[data-rp-theme="crt"] .hero-title {
+  text-shadow: 0 0 12px rgba(109, 255, 158, 0.55), 3px 3px 0 var(--hero-shadow);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -49,8 +88,8 @@ body {
   font-size: clamp(2.5rem, 8vw, 4.5rem);
   line-height: 1.05;
   margin: 0;
-  color: var(--rp-violet-700);
-  text-shadow: 3px 3px 0 var(--rp-sunshine);
+  color: var(--hero-color);
+  text-shadow: 3px 3px 0 var(--hero-shadow);
 }
 
 .hero-tagline {
