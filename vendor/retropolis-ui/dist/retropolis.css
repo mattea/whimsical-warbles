@@ -295,14 +295,19 @@
 }
 
 /* ============================================================================
-   Retropolis — SKETCH theme (opt in with data-rp-theme="sketch")
-   A hand-drawn, pencil-on-notebook-paper mood: marker fonts, wobbly ink lines,
-   and a turbulence filter that gives every icon a drawn-by-hand shake. Keeps the
-   candy palette (purple still home base) but on warm paper with graphite ink.
-   Components are unchanged — this is pure theme CSS layered on the token system.
+   Retropolis — SKETCH themes (hand-drawn)
+     • data-rp-theme="sketch"       → pencil-on-notebook-paper (light)
+     • data-rp-theme="sketch-dark"  → chalk-on-blackboard (dark)
+   Both share the same drawn treatment (marker fonts, wobbly ink lines, and a
+   turbulence filter that gives every icon a drawn-by-hand shake); they differ
+   only in palette. Components are unchanged — this is pure theme CSS layered on
+   the token system. The dark variant mirrors the crt theme's token-override set
+   (surfaces + --rp-text + --rp-border go light; --rp-ink stays dark so text on
+   bright candy fills and dark chrome like the tooltip bubble still reads).
    ========================================================================== */
 
-[data-rp-theme="sketch"] {
+/* --- Shared hand-drawn typography (both sketch variants) ------------------ */
+[data-rp-theme^="sketch"] {
   /* Hand-drawn type — Patrick Hand reads small, so nudge the scale up. */
   --rp-font-display: 'Gochi Hand', 'Comic Sans MS', cursive;
   --rp-font-body: 'Patrick Hand', 'Comic Sans MS', cursive;
@@ -312,8 +317,11 @@
   --rp-text-md: 19px;   --rp-text-lg: 23px;  --rp-text-xl: 29px;
   --rp-text-2xl: 38px;  --rp-text-3xl: 50px;
   --rp-weight-bold: 400;
+  --rp-outline: 2px solid var(--rp-border);
+}
 
-  /* Warm notebook paper + soft graphite ink. */
+/* --- Light: warm notebook paper + soft graphite ink ---------------------- */
+[data-rp-theme="sketch"] {
   --rp-bg: #fbfaf3;
   --rp-paper: #fbfaf3;
   --rp-parchment: #fffef7;
@@ -331,9 +339,7 @@
   /* Sketchy graphite shadows — softer and looser than the sticker shadows. */
   --rp-shadow-hard: 2px 3px 0 0 rgba(44, 37, 64, 0.5);
   --rp-shadow-hard-lg: 3px 4px 0 0 rgba(44, 37, 64, 0.45);
-  --rp-outline: 2px solid var(--rp-border);
 }
-
 /* Notebook-paper ruling on the themed root. */
 [data-rp-theme="sketch"] {
   background-color: var(--rp-bg);
@@ -341,73 +347,179 @@
     to bottom, transparent 0 31px, rgba(120, 110, 170, 0.14) 31px 32px);
 }
 
-/* --- Pencil wobble on every icon (turbulence + displacement, inline data-URI) --- */
-[data-rp-theme="sketch"] .rp-icon {
-  filter: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><filter id='r'><feTurbulence type='fractalNoise' baseFrequency='0.018' numOctaves='2' seed='7' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='2.4'/></filter></svg>#r");
+/* --- Dark: chalk on a deep aubergine blackboard -------------------------- */
+[data-rp-theme="sketch-dark"] {
+  --rp-bg: #17131f;
+  --rp-paper: #17131f;
+  --rp-parchment: #1f1830;
+  --rp-surface: #221b30;
+  --rp-surface-alt: #2b2240;
+  --rp-surface-chrome: #2a2338;
+  /* --rp-ink stays dark (text on bright candy fills + dark chrome). */
+  --rp-text: #efe9f8;         /* chalk */
+  --rp-text-muted: #b7afce;
+  --rp-text-invert: #17131f;
+  --rp-border: #efe9f8;       /* chalk-drawn outline */
+  --rp-slate: #b7afce;        /* muted labels (field icon, counter caption) */
+  /* --rp-silver stays light (like crt): it's the secondary-button face, which
+     carries dark --rp-ink text — darkening it would erase those buttons. */
+  --rp-bevel-hi: #3a3350;
+  --rp-bevel-hi-2: #2a2338;
+  --rp-bevel-lo: #6b6386;
+  --rp-bevel-lo-2: #efe9f8;
+
+  /* Faint dark offset for a little chalk-sticker lift. */
+  --rp-shadow-hard: 2px 3px 0 0 rgba(0, 0, 0, 0.55);
+  --rp-shadow-hard-lg: 3px 4px 0 0 rgba(0, 0, 0, 0.5);
+}
+/* Chalkboard ruling — faint chalk lines instead of dark ones. */
+[data-rp-theme="sketch-dark"] {
+  background-color: var(--rp-bg);
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0 31px, rgba(239, 233, 248, 0.07) 31px 32px);
+}
+
+/* On the dark board, recolor the form-field wells that fill --rp-white (they'd
+   otherwise glare white) and flip their inner text/value to chalk so it reads. */
+[data-rp-theme="sketch-dark"] .rp-field__well,
+[data-rp-theme="sketch-dark"] .rp-select__well,
+[data-rp-theme="sketch-dark"] .rp-check__box,
+[data-rp-theme="sketch-dark"] .rp-radio__dot,
+[data-rp-theme="sketch-dark"] .rp-progress {
+  background: var(--rp-surface-alt);
+}
+[data-rp-theme="sketch-dark"] .rp-field__input,
+[data-rp-theme="sketch-dark"] .rp-select__native {
+  color: var(--rp-text);
+}
+[data-rp-theme="sketch-dark"] .rp-check__input:checked + .rp-check__box {
+  background: var(--rp-violet-700);
+}
+[data-rp-theme="sketch-dark"] .rp-progress__value {
+  color: var(--rp-text);
+  text-shadow: none;
+}
+/* Ghost buttons default to dark violet text — lighten it for the board. */
+[data-rp-theme="sketch-dark"] .rp-btn--ghost { color: var(--rp-violet-300); }
+[data-rp-theme="sketch-dark"] .rp-btn--ghost:hover { background: var(--rp-surface-alt); }
+/* Zebra rows fill with light --rp-violet-50 (chalk text would vanish on it);
+   swap to a dark tint, and keep the sunshine hover row's text dark. */
+[data-rp-theme="sketch-dark"] .rp-table--zebra tbody tr:nth-child(even) { background: var(--rp-surface-alt); }
+[data-rp-theme="sketch-dark"] .rp-table tbody tr:hover { color: var(--rp-ink); }
+
+/* ==========================================================================
+   Shared drawn treatment — applies to BOTH sketch variants.
+   ========================================================================== */
+
+/* --- The hand-drawn wobble: turbulence + displacement, inline data-URI.
+   Strong enough that straight edges become genuinely wavy (not just shifted).
+   Stored in a custom property so icons AND drawn borders reuse the one filter. --- */
+[data-rp-theme^="sketch"] {
+  --rp-wobble: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><filter id='r'><feTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' seed='7' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='3.6'/></filter></svg>#r");
+}
+[data-rp-theme^="sketch"] .rp-icon { filter: var(--rp-wobble); }
+
+/* Wavy hand-drawn OUTLINES on the common surfaces. The trick: draw the border on
+   a content-free ::after and displace only that — so the outline goes wobbly
+   while the text inside stays crisp and legible. Boxes with overflow:hidden
+   (card, window, table, tabs, menu, dialog) keep just the uneven-radius look
+   below, since an outside overlay would be clipped. */
+[data-rp-theme^="sketch"] :is(.rp-btn, .rp-badge, .rp-tag, .rp-alert, .rp-toast,
+  .rp-tooltip__bubble, .rp-field__well, .rp-select__well, .rp-avatar, .rp-check__box) {
+  position: relative;
+  border-color: transparent !important;
+}
+[data-rp-theme^="sketch"] :is(.rp-btn, .rp-badge, .rp-tag, .rp-alert, .rp-toast,
+  .rp-tooltip__bubble, .rp-field__well, .rp-select__well, .rp-avatar, .rp-check__box)::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--rp-border);
+  border-radius: inherit;
+  filter: var(--rp-wobble);
+  pointer-events: none;
+}
+/* The big overflow:hidden containers can't take an outside overlay, but their
+   straight edges are the most obvious tell — give them an INSET wavy outline. */
+[data-rp-theme^="sketch"] :is(.rp-card, .rp-window, .rp-table__frame,
+  .rp-tabs__panel, .rp-accordion__item, .rp-menu__panel, .rp-dialog) {
+  position: relative;
+  border-color: transparent !important;
+}
+[data-rp-theme^="sketch"] :is(.rp-card, .rp-window, .rp-table__frame,
+  .rp-tabs__panel, .rp-accordion__item, .rp-menu__panel, .rp-dialog)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--rp-border);
+  border-radius: inherit;
+  filter: var(--rp-wobble);
+  pointer-events: none;
+  z-index: 3;
 }
 
 /* --- Flatten the 3D bevels into a single drawn line --- */
-[data-rp-theme="sketch"] .rp-bevel-raised,
-[data-rp-theme="sketch"] .rp-bevel-sunken {
+[data-rp-theme^="sketch"] .rp-bevel-raised,
+[data-rp-theme^="sketch"] .rp-bevel-sunken {
   border-color: var(--rp-border);
   box-shadow: none;
 }
 
 /* --- Wobbly boxes: uneven border-radius makes a rectangle look sketched.
    Two patterns, assigned by component so adjacent boxes don't rhyme. --- */
-[data-rp-theme="sketch"] .rp-card,
-[data-rp-theme="sketch"] .rp-alert,
-[data-rp-theme="sketch"] .rp-toast,
-[data-rp-theme="sketch"] .rp-window,
-[data-rp-theme="sketch"] .rp-tabs__panel,
-[data-rp-theme="sketch"] .rp-accordion__item,
-[data-rp-theme="sketch"] .rp-menu__panel,
-[data-rp-theme="sketch"] .rp-table__frame,
-[data-rp-theme="sketch"] .rp-dialog,
-[data-rp-theme="sketch"] .rp-field__well {
+[data-rp-theme^="sketch"] .rp-card,
+[data-rp-theme^="sketch"] .rp-alert,
+[data-rp-theme^="sketch"] .rp-toast,
+[data-rp-theme^="sketch"] .rp-window,
+[data-rp-theme^="sketch"] .rp-tabs__panel,
+[data-rp-theme^="sketch"] .rp-accordion__item,
+[data-rp-theme^="sketch"] .rp-menu__panel,
+[data-rp-theme^="sketch"] .rp-table__frame,
+[data-rp-theme^="sketch"] .rp-dialog,
+[data-rp-theme^="sketch"] .rp-field__well {
   border-radius: 14px 235px 18px 255px / 245px 16px 235px 14px;
 }
-[data-rp-theme="sketch"] .rp-btn,
-[data-rp-theme="sketch"] .rp-tabs__tab,
-[data-rp-theme="sketch"] .rp-badge,
-[data-rp-theme="sketch"] .rp-select__well,
-[data-rp-theme="sketch"] .rp-avatar,
-[data-rp-theme="sketch"] .rp-check__box,
-[data-rp-theme="sketch"] .rp-tooltip__bubble {
+[data-rp-theme^="sketch"] .rp-btn,
+[data-rp-theme^="sketch"] .rp-tabs__tab,
+[data-rp-theme^="sketch"] .rp-badge,
+[data-rp-theme^="sketch"] .rp-select__well,
+[data-rp-theme^="sketch"] .rp-avatar,
+[data-rp-theme^="sketch"] .rp-check__box,
+[data-rp-theme^="sketch"] .rp-tooltip__bubble {
   border-radius: 235px 18px 225px 15px / 15px 225px 18px 235px;
 }
 
 /* --- Hand-placed jitter: small stickers sit slightly askew --- */
-[data-rp-theme="sketch"] .rp-badge { transform: rotate(-2.2deg); }
-[data-rp-theme="sketch"] .rp-tag { transform: rotate(-1deg); }
-[data-rp-theme="sketch"] .rp-btn:not(:active) { transform: rotate(-0.6deg); }
-[data-rp-theme="sketch"] .rp-card { transform: rotate(-0.35deg); }
-[data-rp-theme="sketch"] .rp-alert { transform: rotate(0.3deg); }
+[data-rp-theme^="sketch"] .rp-badge { transform: rotate(-2.2deg); }
+[data-rp-theme^="sketch"] .rp-tag { transform: rotate(-1deg); }
+[data-rp-theme^="sketch"] .rp-btn:not(:active) { transform: rotate(-0.6deg); }
+[data-rp-theme^="sketch"] .rp-card { transform: rotate(-0.35deg); }
+[data-rp-theme^="sketch"] .rp-alert { transform: rotate(0.3deg); }
 
 /* Tabs: hand-drawn folder tabs keep only the top corners wobbly. */
-[data-rp-theme="sketch"] .rp-tabs__tab {
+[data-rp-theme^="sketch"] .rp-tabs__tab {
   border-radius: 235px 18px 4px 4px / 40px 40px 4px 4px;
   border-bottom: none;
 }
 
 /* Dashed/solid dividers become looser pencil strokes. */
-[data-rp-theme="sketch"] .rp-divider--solid { border-top-width: 3px; }
-[data-rp-theme="sketch"] .rp-divider--dashed { border-top-style: dashed; border-top-width: 3px; }
+[data-rp-theme^="sketch"] .rp-divider--solid { border-top-width: 3px; }
+[data-rp-theme^="sketch"] .rp-divider--dashed { border-top-style: dashed; border-top-width: 3px; }
 
 /* Underlined links get a wavier, marker underline. */
-[data-rp-theme="sketch"] .rp-link {
+[data-rp-theme^="sketch"] .rp-link {
   text-decoration-thickness: 2px;
   text-decoration-style: wavy;
 }
 
-/* Focus ring stays legible on paper. */
-[data-rp-theme="sketch"] .rp-btn:focus-visible,
-[data-rp-theme="sketch"] .rp-field__well:focus-within {
+/* Focus ring stays legible on paper and on the board. */
+[data-rp-theme^="sketch"] .rp-btn:focus-visible,
+[data-rp-theme^="sketch"] .rp-field__well:focus-within {
   outline-color: var(--rp-magenta);
 }
 
 
-/* /home/user/design-system/src/components/Accordion/Accordion.css */
+/* src/components/Accordion/Accordion.css */
 .rp-accordion {
   display: flex;
   flex-direction: column;
@@ -451,7 +563,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Alert/Alert.css */
+/* src/components/Alert/Alert.css */
 .rp-alert {
   display: flex;
   align-items: flex-start;
@@ -487,7 +599,7 @@
 .rp-alert__close:hover { background: rgba(28, 16, 48, 0.12); }
 
 
-/* /home/user/design-system/src/components/Avatar/Avatar.css */
+/* src/components/Avatar/Avatar.css */
 .rp-avatar {
   position: relative;
   display: inline-flex;
@@ -523,7 +635,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Badge/Badge.css */
+/* src/components/Badge/Badge.css */
 .rp-badge {
   display: inline-flex;
   align-items: center;
@@ -552,7 +664,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Button/Button.css */
+/* src/components/Button/Button.css */
 .rp-btn {
   font-family: var(--rp-font-display);
   font-weight: var(--rp-weight-bold);
@@ -616,7 +728,7 @@
 .rp-btn__label { display: inline-block; }
 
 
-/* /home/user/design-system/src/components/Card/Card.css */
+/* src/components/Card/Card.css */
 .rp-card {
   background: var(--rp-surface);
   border: var(--rp-outline);
@@ -653,7 +765,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Checkbox/Checkbox.css */
+/* src/components/Checkbox/Checkbox.css */
 .rp-check {
   display: inline-flex;
   align-items: center;
@@ -688,7 +800,7 @@
 .rp-check--disabled { cursor: not-allowed; opacity: 0.55; }
 
 
-/* /home/user/design-system/src/components/Dialog/Dialog.css */
+/* src/components/Dialog/Dialog.css */
 .rp-dialog__overlay {
   position: fixed;
   inset: 0;
@@ -756,7 +868,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Divider/Divider.css */
+/* src/components/Divider/Divider.css */
 .rp-divider {
   flex: 1;
   border: none;
@@ -787,7 +899,7 @@
 }
 
 
-/* /home/user/design-system/src/components/HitCounter/HitCounter.css */
+/* src/components/HitCounter/HitCounter.css */
 .rp-counter {
   display: inline-flex;
   flex-direction: column;
@@ -825,7 +937,7 @@
 }
 
 
-/* /home/user/design-system/src/components/HyperLink/HyperLink.css */
+/* src/components/HyperLink/HyperLink.css */
 .rp-link {
   color: var(--rp-sky);
   text-decoration: underline;
@@ -842,7 +954,7 @@
 .rp-link__ext { vertical-align: -1px; margin-left: 2px; }
 
 
-/* /home/user/design-system/src/components/Icon/Icon.css */
+/* src/components/Icon/Icon.css */
 .rp-icon {
   display: inline-block;
   vertical-align: middle;
@@ -853,7 +965,7 @@
 }
 
 
-/* /home/user/design-system/src/components/IconButton/IconButton.css */
+/* src/components/IconButton/IconButton.css */
 .rp-iconbtn {
   padding: 0;
   aspect-ratio: 1;
@@ -863,7 +975,7 @@
 .rp-iconbtn--lg { width: 52px; height: 52px; }
 
 
-/* /home/user/design-system/src/components/Input/Input.css */
+/* src/components/Input/Input.css */
 /* Shared field scaffolding (Input, Textarea, Select all use .rp-field). */
 .rp-field {
   display: flex;
@@ -921,7 +1033,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Marquee/Marquee.css */
+/* src/components/Marquee/Marquee.css */
 .rp-marquee {
   overflow: hidden;
   white-space: nowrap;
@@ -950,7 +1062,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Menu/Menu.css */
+/* src/components/Menu/Menu.css */
 .rp-menu { position: relative; display: inline-block; }
 .rp-menu__caret { margin-left: 2px; font-size: 11px; }
 .rp-menu__panel {
@@ -987,7 +1099,7 @@
 .rp-menu__divider { height: 2px; margin: 4px 6px; background: var(--rp-silver-dark); border-radius: 2px; }
 
 
-/* /home/user/design-system/src/components/Progress/Progress.css */
+/* src/components/Progress/Progress.css */
 .rp-progress {
   position: relative;
   height: 24px;
@@ -1037,7 +1149,7 @@
 }
 
 
-/* /home/user/design-system/src/components/RadioGroup/RadioGroup.css */
+/* src/components/RadioGroup/RadioGroup.css */
 .rp-radios {
   border: none;
   margin: 0;
@@ -1086,7 +1198,7 @@
 .rp-radio--disabled { cursor: not-allowed; opacity: 0.55; }
 
 
-/* /home/user/design-system/src/components/Select/Select.css */
+/* src/components/Select/Select.css */
 .rp-select__well {
   display: flex;
   align-items: stretch;
@@ -1119,7 +1231,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Switch/Switch.css */
+/* src/components/Switch/Switch.css */
 .rp-switch {
   display: inline-flex;
   align-items: center;
@@ -1172,7 +1284,7 @@
 .rp-switch--disabled { cursor: not-allowed; opacity: 0.55; }
 
 
-/* /home/user/design-system/src/components/Table/Table.css */
+/* src/components/Table/Table.css */
 .rp-table__frame {
   display: inline-block;
   background: var(--rp-surface);
@@ -1215,7 +1327,7 @@
 .rp-table tbody tr:last-child td { border-bottom: none; }
 
 
-/* /home/user/design-system/src/components/Tabs/Tabs.css */
+/* src/components/Tabs/Tabs.css */
 .rp-tabs { font-family: var(--rp-font-body); color: var(--rp-text); }
 .rp-tabs__list {
   display: flex;
@@ -1260,7 +1372,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Tag/Tag.css */
+/* src/components/Tag/Tag.css */
 .rp-tag {
   display: inline-flex;
   align-items: center;
@@ -1295,7 +1407,7 @@
 .rp-tag__x:hover { background: rgba(28, 16, 48, 0.12); }
 
 
-/* /home/user/design-system/src/components/Textarea/Textarea.css */
+/* src/components/Textarea/Textarea.css */
 .rp-field__well--area { padding: 8px 10px; align-items: stretch; }
 .rp-field__input--area {
   resize: vertical;
@@ -1304,7 +1416,7 @@
 }
 
 
-/* /home/user/design-system/src/components/Toast/Toast.css */
+/* src/components/Toast/Toast.css */
 .rp-toast {
   display: flex;
   align-items: flex-start;
@@ -1344,7 +1456,7 @@
 .rp-toast__close:hover { background: rgba(28, 16, 48, 0.12); }
 
 
-/* /home/user/design-system/src/components/Tooltip/Tooltip.css */
+/* src/components/Tooltip/Tooltip.css */
 .rp-tooltip {
   position: relative;
   display: inline-flex;
@@ -1378,7 +1490,7 @@
 .rp-tooltip--right .rp-tooltip__bubble  { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
 
 
-/* /home/user/design-system/src/components/Window/Window.css */
+/* src/components/Window/Window.css */
 .rp-window {
   border-radius: var(--rp-radius-sm);
   box-shadow: var(--rp-shadow-float);
