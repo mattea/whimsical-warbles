@@ -128,6 +128,51 @@ export declare const glyphs: {
     info: {
         el: React.JSX.Element;
     };
+    question: {
+        el: React.JSX.Element;
+    };
+    'chevron-down': {
+        el: React.JSX.Element;
+    };
+    'chevron-up': {
+        el: React.JSX.Element;
+    };
+    'chevron-left': {
+        el: React.JSX.Element;
+    };
+    'chevron-right': {
+        el: React.JSX.Element;
+    };
+    'arrow-left': {
+        el: React.JSX.Element;
+    };
+    'arrow-right': {
+        el: React.JSX.Element;
+    };
+    minus: {
+        el: React.JSX.Element;
+    };
+    menu: {
+        el: React.JSX.Element;
+    };
+    eye: {
+        el: React.JSX.Element;
+    };
+    external: {
+        el: React.JSX.Element;
+    };
+    copy: {
+        el: React.JSX.Element;
+    };
+    refresh: {
+        el: React.JSX.Element;
+    };
+    play: {
+        el: React.JSX.Element;
+    };
+    pause: {
+        el: React.JSX.Element;
+    };
 };
 export type IconName = keyof typeof glyphs;
 export declare const iconNames: IconName[];

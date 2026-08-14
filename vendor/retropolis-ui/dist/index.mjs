@@ -6,17 +6,22 @@ var glyphs = {
   /* ---- Detailed ---------------------------------------------------------- */
   home: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M4 15 16 5l12 10v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z", fill: "#8bd450", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M2 16 16 4l14 12", fill: "none", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("rect", { x: "13", y: "18", width: "6", height: "9", fill: "#663399", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("rect", { x: "7", y: "6", width: "4", height: "6", fill: "#ff2e97", stroke: INK, strokeWidth: "1.5" })
+      /* @__PURE__ */ jsx("rect", { x: "14.5", y: "15", width: "3", height: "14", fill: "#a06a3c", stroke: INK, strokeWidth: "1.6" }),
+      /* @__PURE__ */ jsx("circle", { cx: "8.5", cy: "9", r: "6", fill: "#8bd450", stroke: INK, strokeWidth: "1.6" }),
+      /* @__PURE__ */ jsx("circle", { cx: "23", cy: "8", r: "6.5", fill: "#5a9e2a", stroke: INK, strokeWidth: "1.6" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "5.5", r: "5.5", fill: "#8bd450", stroke: INK, strokeWidth: "1.6" }),
+      /* @__PURE__ */ jsx("rect", { x: "9", y: "16", width: "14", height: "8.5", fill: "#ffcf33", stroke: INK, strokeWidth: "1.8" }),
+      /* @__PURE__ */ jsx("path", { d: "M7.5 16 16 9.5 24.5 16Z", fill: "#ff2e97", stroke: INK, strokeWidth: "1.8", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("rect", { x: "14", y: "19", width: "4", height: "5.5", fill: "#663399", stroke: INK, strokeWidth: "1.4" }),
+      /* @__PURE__ */ jsx("path", { d: "M12.5 24.5v4.5M16 24.5v4.5", stroke: INK, strokeWidth: "1.4", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M12.5 26.2h3.5M12.5 27.8h3.5", stroke: INK, strokeWidth: "1.2", strokeLinecap: "round" })
     ] })
   },
   mail: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("rect", { x: "3", y: "7", width: "26", height: "18", rx: "1.5", fill: "#22d3ee", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M4 8 16 18 28 8", fill: "none", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M3 24 12 16M29 24 20 16", fill: "none", stroke: INK, strokeWidth: "1.5" })
+      /* @__PURE__ */ jsx("path", { d: "M3.5 8c8-1 17-1 25 0 .6 4.8.6 10.5 0 15.5-8 1-17 1-25 0-.6-5-.6-10.7 0-15.5Z", fill: "#22d3ee", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M4 8.5C9 13 12 15 16 17.4 20 15 23 13 28 8.5", fill: "none", stroke: INK, strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 17c-1.6-2.2-4.3-1-3.4 1.2.7 1.6 3.4 2.6 3.4 2.6s2.7-1 3.4-2.6c.9-2.2-1.8-3.4-3.4-1.2Z", fill: "#ff2e97", stroke: INK, strokeWidth: "1.2", strokeLinejoin: "round" })
     ] })
   },
   search: {
@@ -29,8 +34,9 @@ var glyphs = {
   },
   folder: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M3 8a2 2 0 0 1 2-2h7l3 3h10a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M3 12h26v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M3 8c0-1.2 1-2 2.2-2H11l3 3h11c1.1 0 2 .9 2 2v11c0 1.2-1 2-2.2 2H5.2C4 24 3 23.2 3 22Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("rect", { x: "9", y: "8.5", width: "14", height: "5", rx: "1", fill: "#faf5ff", stroke: INK, strokeWidth: "1.4" }),
+      /* @__PURE__ */ jsx("path", { d: "M3 13c8-.7 18-.7 26 0 .3 3.4.3 6.8 0 10.2-8 .7-18 .7-26 0-.3-3.4-.3-6.8 0-10.2Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" })
     ] })
   },
   floppy: {
@@ -50,10 +56,10 @@ var glyphs = {
   },
   trash: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M7 10h18l-1.5 16a2 2 0 0 1-2 1.8H10.5a2 2 0 0 1-2-1.8Z", fill: "#00b3b3", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("rect", { x: "5", y: "6", width: "22", height: "4.5", rx: "1.5", fill: "#5b5470", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M12 5h8v2h-8Z", fill: "#5b5470", stroke: INK, strokeWidth: "1.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M13 14v9M16 14v9M19 14v9", stroke: INK, strokeWidth: "1.5", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M7 12c6-.7 12-.7 18 0l-1.5 14c-.1 1.1-1 2-2.1 2H10.6c-1.1 0-2-.9-2.1-2Z", fill: "#00b3b3", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M5 9.5c7-1 15-1 22 0 .2 1.2.2 2.4 0 3.5-7 1-15 1-22 0-.2-1.1-.2-2.3 0-3.5Z", fill: "#5b5470", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M12 6h8l1 3.2h-10Z", fill: "#5b5470", stroke: INK, strokeWidth: "1.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M12.5 15c-.4 3-.4 6 0 9M16 15c-.2 3-.2 6 0 9M19.5 15c.4 3 .4 6 0 9", fill: "none", stroke: INK, strokeWidth: "1.4", strokeLinecap: "round" })
     ] })
   },
   gear: {
@@ -73,7 +79,7 @@ var glyphs = {
   heart: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsx("path", { d: "M16 27C6 20 4 14 4 10.5A6.5 6.5 0 0 1 16 7 6.5 6.5 0 0 1 28 10.5C28 14 26 20 16 27Z", fill: "#ff2e97", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M9 11a3.5 3.5 0 0 1 4-2.5", fill: "none", stroke: "#fff", strokeWidth: "2", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("ellipse", { cx: "10.5", cy: "12.5", rx: "2.1", ry: "3", fill: "#fff", opacity: "0.85", transform: "rotate(-28 10.5 12.5)" })
     ] })
   },
   star: {
@@ -90,44 +96,49 @@ var glyphs = {
   },
   bell: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M16 4a8 8 0 0 1 8 8c0 6 2 8 3 9H5c1-1 3-3 3-9a8 8 0 0 1 8-8Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M13 25a3 3 0 0 0 6 0Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "4", r: "2", fill: "#ff2e97", stroke: INK, strokeWidth: "1.5" })
+      /* @__PURE__ */ jsx("path", { d: "M13 8.5a3 3 0 0 1 6 0", fill: "none", stroke: INK, strokeWidth: "2.4", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("rect", { x: "13.5", y: "8", width: "5", height: "3", rx: "1", fill: "#ff8c42", stroke: INK, strokeWidth: "1.6" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "18.5", r: "9.5", fill: "#ffcf33", stroke: INK, strokeWidth: "2" }),
+      /* @__PURE__ */ jsx("path", { d: "M8 21.5h16", stroke: INK, strokeWidth: "2", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M12.5 21.5 11 25M19.5 21.5 21 25", stroke: INK, strokeWidth: "1.6", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "24", r: "1.7", fill: INK }),
+      /* @__PURE__ */ jsx("path", { d: "M27 12l2.5-1M26 8l2-2", stroke: "#ffcf33", strokeWidth: "2", strokeLinecap: "round" })
     ] })
   },
   bookmark: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M8 4h16v24l-8-6-8 6Z", fill: "#7b2ff7", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M12 4h4v14l-4-3Z", fill: "#bd93ff", stroke: INK, strokeWidth: "1.4", strokeLinejoin: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M8 4.5c5.3-.6 10.7-.6 16 0 .5 8 .5 15.7 0 23.5l-8-5.6-8 5.6c-.5-7.8-.5-15.5 0-23.5Z", fill: "#7b2ff7", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 9l1.4 3 3.2.3-2.4 2.1.7 3.1-2.9-1.6-2.9 1.6.7-3.1-2.4-2.1 3.2-.3Z", fill: "#ffcf33", stroke: INK, strokeWidth: "1", strokeLinejoin: "round" })
     ] })
   },
   download: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M16 4v14", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M9 13l7 7 7-7", fill: "#8bd450", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("rect", { x: "5", y: "24", width: "22", height: "4", rx: "1.5", fill: "#663399", stroke: INK, strokeWidth: "2" })
+      /* @__PURE__ */ jsx("path", { d: "M16 4v13", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M9 12l7 7 7-7", fill: "#8bd450", stroke: INK, strokeWidth: "2.6", strokeLinejoin: "round", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M5 24c7-.5 15-.5 22 0 .2 1.3.2 2.5 0 3.8-7 .5-15 .5-22 0-.2-1.3-.2-2.5 0-3.8Z", fill: "#663399", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" })
     ] })
   },
   upload: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M16 20V6", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M9 13l7-7 7 7", fill: "#22d3ee", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("rect", { x: "5", y: "24", width: "22", height: "4", rx: "1.5", fill: "#663399", stroke: INK, strokeWidth: "2" })
+      /* @__PURE__ */ jsx("path", { d: "M16 19V6", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M9 13l7-7 7 7", fill: "#22d3ee", stroke: INK, strokeWidth: "2.6", strokeLinejoin: "round", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M5 24c7-.5 15-.5 22 0 .2 1.3.2 2.5 0 3.8-7 .5-15 .5-22 0-.2-1.3-.2-2.5 0-3.8Z", fill: "#663399", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" })
     ] })
   },
   link: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M12 20l8-8", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M18 8l2-2a5 5 0 0 1 7 7l-3 3a5 5 0 0 1-7 0", fill: "none", stroke: "#ff2e97", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M14 24l-2 2a5 5 0 0 1-7-7l3-3a5 5 0 0 1 7 0", fill: "none", stroke: "#7b2ff7", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" })
+      /* @__PURE__ */ jsx("ellipse", { cx: "12", cy: "16", rx: "7.5", ry: "5.5", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", transform: "rotate(-32 12 16)" }),
+      /* @__PURE__ */ jsx("ellipse", { cx: "20", cy: "16", rx: "7.5", ry: "5.5", fill: "none", stroke: "#ff2e97", strokeWidth: "5", transform: "rotate(-32 20 16)" }),
+      /* @__PURE__ */ jsx("ellipse", { cx: "12", cy: "16", rx: "7.5", ry: "5.5", fill: "none", stroke: INK, strokeWidth: "1.2", transform: "rotate(-32 12 16)", opacity: "0.5" })
     ] })
   },
   lock: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("rect", { x: "6", y: "14", width: "20", height: "14", rx: "2", fill: "#ffcf33", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M10 14v-3a6 6 0 0 1 12 0v3", fill: "none", stroke: INK, strokeWidth: "2.5" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "20", r: "2.4", fill: "#663399", stroke: INK, strokeWidth: "1.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 22v3", stroke: INK, strokeWidth: "2", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M10 15v-3.5a6 6 0 0 1 12 0V15", fill: "none", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M6.5 14.5h19a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-19A1.5 1.5 0 0 1 5 26v-10a1.5 1.5 0 0 1 1.5-1.5Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "19.5", r: "2.7", fill: "#663399", stroke: INK, strokeWidth: "1.4" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 21.5l-1.4 4.2h2.8Z", fill: "#663399", stroke: INK, strokeWidth: "1.4", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M23.5 17.5l1 6", stroke: "#ffe08a", strokeWidth: "1.6", strokeLinecap: "round" })
     ] })
   },
   key: {
@@ -148,30 +159,29 @@ var glyphs = {
   },
   calendar: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("rect", { x: "4", y: "6", width: "24", height: "22", rx: "2", fill: "#faf5ff", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("rect", { x: "4", y: "6", width: "24", height: "7", rx: "2", fill: "#ff2e97", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M10 3v6M22 3v6", stroke: INK, strokeWidth: "2.5", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("rect", { x: "9", y: "16", width: "4", height: "4", fill: "#22d3ee" }),
-      /* @__PURE__ */ jsx("rect", { x: "15", y: "16", width: "4", height: "4", fill: "#8bd450" }),
-      /* @__PURE__ */ jsx("rect", { x: "21", y: "16", width: "4", height: "4", fill: "#ffcf33" }),
-      /* @__PURE__ */ jsx("rect", { x: "9", y: "22", width: "4", height: "4", fill: "#7b2ff7" })
+      /* @__PURE__ */ jsx("path", { d: "M4 8c8-.6 16-.6 24 0 .5 6 .5 13 0 19-8 .6-16 .6-24 0-.5-6-.5-13 0-19Z", fill: "#faf5ff", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M4 8c8-.6 16-.6 24 0 .2 2 .2 3.6 0 5.6-8 .5-16 .5-24 0-.2-2-.2-3.6 0-5.6Z", fill: "#ff2e97", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M9 4a2.2 2.2 0 0 1 0 5.5M22 4a2.2 2.2 0 0 1 0 5.5", fill: "none", stroke: INK, strokeWidth: "2", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "12", cy: "19", r: "2.6", fill: "none", stroke: "#7b2ff7", strokeWidth: "1.8" }),
+      /* @__PURE__ */ jsx("path", { d: "M18 17.2l4 3.6M22 17.2l-4 3.6", stroke: "#22d3ee", strokeWidth: "1.8", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M9.5 24.5c2-.3 4-.3 6 0", fill: "none", stroke: "#8bd450", strokeWidth: "1.8", strokeLinecap: "round" })
     ] })
   },
   clock: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "12", fill: "#22d3ee", stroke: INK, strokeWidth: "2.5" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "12", fill: "none", stroke: "#fff", strokeWidth: "1", strokeDasharray: "1 3" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 16V8M16 16l6 3", stroke: INK, strokeWidth: "2.5", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 4c6.8 0 12 5.2 12 12s-5.2 12-12 12S4 22.8 4 16 9.2 4 16 4Z", fill: "#22d3ee", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 6.5v2M25.5 16h-2M16 25.5v-2M6.5 16h2", stroke: INK, strokeWidth: "1.8", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 16 15.4 9M16 16l5.6 3", stroke: INK, strokeWidth: "2.5", strokeLinecap: "round" }),
       /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "1.8", fill: "#ff2e97" })
     ] })
   },
   camera: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("rect", { x: "3", y: "9", width: "26", height: "18", rx: "2", fill: "#5b5470", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M11 9l2-3h6l2 3", fill: "#5b5470", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "18", r: "6", fill: "#22d3ee", stroke: INK, strokeWidth: "2" }),
+      /* @__PURE__ */ jsx("path", { d: "M3 11c0-1.1 1-2 2.2-2H11l2-3h6l2 3h5.8C28 9 29 9.9 29 11v14c0 1.1-1 2-2.2 2H5.2C4 27 3 26.1 3 25Z", fill: "#5b5470", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 18c3.4 0 6.2 2.6 6.2 6S19.4 24 16 24s-6.2-2.6-6.2-6S12.6 12 16 12Z", fill: "#22d3ee", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
       /* @__PURE__ */ jsx("circle", { cx: "16", cy: "18", r: "2.5", fill: "#faf5ff", stroke: INK, strokeWidth: "1.2" }),
-      /* @__PURE__ */ jsx("rect", { x: "23", y: "12", width: "3", height: "2.5", fill: "#ff2e97" })
+      /* @__PURE__ */ jsx("circle", { cx: "13.8", cy: "15.8", r: "1", fill: "#fff" }),
+      /* @__PURE__ */ jsx("circle", { cx: "24.5", cy: "13.5", r: "1.5", fill: "#ff2e97", stroke: INK, strokeWidth: "1" })
     ] })
   },
   music: {
@@ -184,11 +194,10 @@ var glyphs = {
   },
   globe: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "12", fill: "#22d3ee", stroke: INK, strokeWidth: "2.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 4v24M4 16h24", stroke: INK, strokeWidth: "1.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 4c5 4 5 20 0 24M16 4c-5 4-5 20 0 24", fill: "none", stroke: INK, strokeWidth: "1.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M6 11c6 3 14 3 20 0M6 21c6-3 14-3 20 0", fill: "none", stroke: INK, strokeWidth: "1.5" }),
-      /* @__PURE__ */ jsx("path", { d: "M9 9l3 2-1 3 3 1M22 20l-3-1 1-3", fill: "#8bd450", stroke: INK, strokeWidth: "1.2", strokeLinejoin: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M16 4c6.8 0 12 5.2 12 12s-5.2 12-12 12S4 22.8 4 16 9.2 4 16 4Z", fill: "#22d3ee", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 4.5c-4.5 3.5-4.5 20 0 23M16 4.5c4.5 3.5 4.5 20 0 23M5 12c7 2.6 15 2.6 22 0M5 20c7-2.6 15-2.6 22 0", fill: "none", stroke: INK, strokeWidth: "1.2", opacity: "0.55" }),
+      /* @__PURE__ */ jsx("path", { d: "M9.5 10c2-.6 3.4.4 3 2-.5 1.8-2.6 1.4-2.6 3.2 0 1.4-1.8.8-1.8-1.6 0-2 .4-3 1.4-3.6Z", fill: "#8bd450", stroke: INK, strokeWidth: "1.2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M19.5 15.5c2.2-.4 3.6 1 2.8 2.8-.7 1.6-3.4 1-3.4 2.8 0 1.2-2 .4-1.6-2 .3-2 .8-3.2 2.2-3.6Z", fill: "#8bd450", stroke: INK, strokeWidth: "1.2", strokeLinejoin: "round" })
     ] })
   },
   rocket: {
@@ -207,10 +216,12 @@ var glyphs = {
   },
   gift: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("rect", { x: "4", y: "13", width: "24", height: "15", rx: "1.5", fill: "#ff2e97", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("rect", { x: "3", y: "9", width: "26", height: "5", fill: "#7b2ff7", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("rect", { x: "13", y: "9", width: "6", height: "19", fill: "#ffcf33", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 9c-4-6-9-1-4 1 M16 9c4-6 9-1 4 1", fill: "none", stroke: INK, strokeWidth: "2", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M5 13.5h22v12.5a1.5 1.5 0 0 1-1.5 1.5h-19A1.5 1.5 0 0 1 5 26Z", fill: "#ff2e97", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M3.5 9.5h25v4.8h-25Z", fill: "#7b2ff7", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M15 9.5c-1.6 4.5 1.8 8-.3 12.5 1.8 3-.4 3.6 0 5.5M18 9.5c1.4 4.5-1.6 8 .5 12.5-1.6 3 .3 3.6-.2 5.5", fill: "none", stroke: "#ffcf33", strokeWidth: "4", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 10C12.5 5 5.5 4.5 7.5 9.5c1.3 3.2 5.8 1.6 8.5 .5", fill: "none", stroke: "#ffcf33", strokeWidth: "4", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 10C19.5 5 26.5 4.5 24.5 9.5c-1.3 3.2-5.8 1.6-8.5 .5", fill: "none", stroke: "#ffcf33", strokeWidth: "4", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 8v3.5", stroke: "#ffcf33", strokeWidth: "5.5", strokeLinecap: "round" })
     ] })
   },
   flag: {
@@ -223,7 +234,9 @@ var glyphs = {
   cloud: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
       /* @__PURE__ */ jsx("path", { d: "M9 24a6 6 0 0 1-1-11.9A8 8 0 0 1 23 11a5.5 5.5 0 0 1 0 13Z", fill: "#22d3ee", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M11 13a4 4 0 0 1 5-2", fill: "none", stroke: "#fff", strokeWidth: "1.8", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M11 22.5a3.5 3.5 0 0 0 3.5-2.8M17.5 23a3 3 0 0 0 3-2.6", fill: "none", stroke: INK, strokeWidth: "1.1", strokeLinecap: "round", opacity: "0.45" }),
+      /* @__PURE__ */ jsx("circle", { cx: "12", cy: "15", r: "1.3", fill: "#fff", opacity: "0.85" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16.5", cy: "13.5", r: "1", fill: "#fff", opacity: "0.7" })
     ] })
   },
   sun: {
@@ -254,10 +267,13 @@ var glyphs = {
   },
   cart: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M3 5h4l3 15h14l3-10H9", fill: "none", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M10 10h16l-2.5 8h-12Z", fill: "#ff2e97", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("circle", { cx: "12", cy: "26", r: "2.5", fill: "#663399", stroke: INK, strokeWidth: "2" }),
-      /* @__PURE__ */ jsx("circle", { cx: "22", cy: "26", r: "2.5", fill: "#663399", stroke: INK, strokeWidth: "2" })
+      /* @__PURE__ */ jsx("path", { d: "M3 5h3.6l1.2 4.5", fill: "none", stroke: INK, strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M8 12c6-.6 12.5-.6 19 0l-2.2 8.6c-.1.5-.6.9-1.1.9H11.3c-.5 0-1-.4-1.1-.9Z", fill: "#ff2e97", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M13 12.5v8.5M18.5 12.5v8.5M9.4 16.5h14", stroke: INK, strokeWidth: "1.1", opacity: "0.5" }),
+      /* @__PURE__ */ jsx("circle", { cx: "13", cy: "9", r: "2.4", fill: "#8bd450", stroke: INK, strokeWidth: "1.4" }),
+      /* @__PURE__ */ jsx("circle", { cx: "19.5", cy: "8.5", r: "2.8", fill: "#ffcf33", stroke: INK, strokeWidth: "1.4" }),
+      /* @__PURE__ */ jsx("circle", { cx: "12.5", cy: "26", r: "2.6", fill: "#663399", stroke: INK, strokeWidth: "2" }),
+      /* @__PURE__ */ jsx("circle", { cx: "22", cy: "26", r: "2.6", fill: "#663399", stroke: INK, strokeWidth: "2" })
     ] })
   },
   pencil: {
@@ -285,26 +301,104 @@ var glyphs = {
     ] })
   },
   check: {
-    el: /* @__PURE__ */ jsx("path", { d: "M5 17l7 7L27 8", fill: "none", stroke: "#5a9e2a", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" })
+    // Ink outline under a bright green tick so it clears 3:1 on white, on the
+    // pale-green success surfaces, and on the checked (lavender) checkbox box.
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M5 16.5Q8.5 21.5 12 24Q18.5 14 27 7.5", fill: "none", stroke: INK, strokeWidth: "7", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M5 16.5Q8.5 21.5 12 24Q18.5 14 27 7.5", fill: "none", stroke: "#6cc24a", strokeWidth: "3.6", strokeLinecap: "round", strokeLinejoin: "round" })
+    ] })
   },
   close: {
-    el: /* @__PURE__ */ jsx("path", { d: "M7 7l18 18M25 7 7 25", stroke: "#c9186e", strokeWidth: "5", strokeLinecap: "round" })
+    // gently bowed strokes — a hand-scrawled X, not a ruler-straight one
+    el: /* @__PURE__ */ jsx("path", { d: "M7 7c4.5 6.5 10.5 11.5 18 18M25 7c-4.5 6.5-10.5 11.5-18 18", fill: "none", stroke: "#c9186e", strokeWidth: "5", strokeLinecap: "round" })
   },
   plus: {
-    el: /* @__PURE__ */ jsx("path", { d: "M16 5v22M5 16h22", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round" })
+    el: /* @__PURE__ */ jsx("path", { d: "M16 5c.6 7.3.6 14.7 0 22M5 16c7.3-.6 14.7-.6 22 0", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round" })
   },
   warning: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("path", { d: "M16 3 30 27H2Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 11v8", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "23", r: "1.8", fill: INK })
+      /* @__PURE__ */ jsx("path", { d: "M16 3.5c.6 0 1.2.3 1.5.9l12 21.2c.6 1.1-.2 2.4-1.5 2.4H4c-1.3 0-2.1-1.3-1.5-2.4L14.5 4.4c.3-.6.9-.9 1.5-.9Z", fill: "#ffcf33", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round", transform: "rotate(-3.5 16 17)" }),
+      /* @__PURE__ */ jsx("path", { d: "M15.6 11.2c.3 2.5.5 5 .8 7.5", fill: "none", stroke: INK, strokeWidth: "3", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "16.4", cy: "23", r: "1.9", fill: INK })
     ] })
   },
   info: {
     el: /* @__PURE__ */ jsxs(Fragment, { children: [
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "16", r: "13", fill: "#3b82f6", stroke: INK, strokeWidth: "2.5" }),
-      /* @__PURE__ */ jsx("circle", { cx: "16", cy: "10", r: "2", fill: "#fff" }),
-      /* @__PURE__ */ jsx("path", { d: "M16 15v9", stroke: "#fff", strokeWidth: "3.5", strokeLinecap: "round" })
+      /* @__PURE__ */ jsx("path", { d: "M16 3.5c7 0 12.6 5.6 12.6 12.5S23 28.5 16 28.5 3.4 23 3.4 16 9 3.5 16 3.5Z", fill: "#3b82f6", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "15.6", cy: "10", r: "2", fill: "#fff" }),
+      /* @__PURE__ */ jsx("path", { d: "M16.2 14.5c-.3 3-.3 6 0 9", fill: "none", stroke: "#fff", strokeWidth: "3.5", strokeLinecap: "round" })
+    ] })
+  },
+  question: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M16 3.5c7 0 12.6 5.6 12.6 12.5S23 28.5 16 28.5 3.4 23 3.4 16 9 3.5 16 3.5Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M11.4 12.3c.6-3 4.6-4.2 7.4-2.4 2.6 1.7 1.7 4.6-.9 6-1.4.8-1.9 1.8-1.8 3.4", fill: "none", stroke: "#fff", strokeWidth: "3", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "15.9", cy: "24", r: "2", fill: "#fff" })
+    ] })
+  },
+  /* ---- Directional (chunky violet strokes, à la plus/close) -------------- */
+  // chevrons/arrows bowed slightly inward — hand-drawn, still clearly directional
+  "chevron-down": { el: /* @__PURE__ */ jsx("path", { d: "M6 12Q12.5 16.5 16 22Q19.5 16.5 26 12", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  "chevron-up": { el: /* @__PURE__ */ jsx("path", { d: "M6 20Q12.5 15.5 16 10Q19.5 15.5 26 20", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  "chevron-left": { el: /* @__PURE__ */ jsx("path", { d: "M20 6Q15.5 12.5 10 16Q15.5 19.5 20 26", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  "chevron-right": { el: /* @__PURE__ */ jsx("path", { d: "M12 6Q16.5 12.5 22 16Q16.5 19.5 12 26", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  "arrow-left": { el: /* @__PURE__ */ jsx("path", { d: "M28 16.3Q17.5 15.6 7 16.3M15 8Q12 13 7 16Q12 19 15 24", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  "arrow-right": { el: /* @__PURE__ */ jsx("path", { d: "M4 16.3Q14.5 15.6 25 16.3M17 8Q20 13 25 16Q20 19 17 24", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round", strokeLinejoin: "round" }) },
+  minus: {
+    el: /* @__PURE__ */ jsx("path", { d: "M5 16c7.3-.6 14.7-.6 22 0", fill: "none", stroke: "#7b2ff7", strokeWidth: "5", strokeLinecap: "round" })
+  },
+  /* ---- Common actions (candy + ink, à la the detailed set) --------------- */
+  menu: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M4 8.5q6-1.6 12 0t12 0", fill: "none", stroke: "#ff2e97", strokeWidth: "3.6", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M4 16q6-1.6 12 0t12 0", fill: "none", stroke: "#ffcf33", strokeWidth: "3.6", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M4 23.5q6-1.6 12 0t12 0", fill: "none", stroke: "#22d3ee", strokeWidth: "3.6", strokeLinecap: "round" })
+    ] })
+  },
+  eye: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M16 1.5V6M9.5 3l2 4.2M22.5 3l-2 4.2M3.5 8l4 2.4M28.5 8l-4 2.4", stroke: INK, strokeWidth: "1.8", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M16 7.5c7.5 0 11.5 4.8 11.5 10.2S23.5 28.5 16 28.5 4 23.1 4 17.7 8.5 7.5 16 7.5Z", fill: "#faf5ff", stroke: INK, strokeWidth: "2.2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M6.5 15c2 .3 3.3 1.4 4.2 1M25.5 21c-2 .2-3.4-.7-4.4-1.6M9 23.5c1.6-.4 2.6-1.6 3-2.8", fill: "none", stroke: "#ff2e97", strokeWidth: "1", strokeLinecap: "round", opacity: "0.75" }),
+      /* @__PURE__ */ jsx("circle", { cx: "17.6", cy: "18.6", r: "5.6", fill: "#8bd450", stroke: INK, strokeWidth: "2" }),
+      /* @__PURE__ */ jsx("circle", { cx: "17.6", cy: "18.6", r: "2.5", fill: INK }),
+      /* @__PURE__ */ jsx("circle", { cx: "19.4", cy: "20.6", r: "1.4", fill: "#fff" })
+    ] })
+  },
+  external: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M5.5 12c3-.4 6-.4 9 0M5.5 12c-.4 4.7-.4 9.7 0 14.3 0 .8.7 1.5 1.5 1.5 4.6.4 9.4.4 14 0 .8 0 1.5-.7 1.5-1.5.35-3 .35-6 0-9", fill: "#faf5ff", stroke: INK, strokeWidth: "2", strokeLinejoin: "round", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M13 19c4.2-4.4 8.6-8.8 13.4-13.4", fill: "none", stroke: "#ff2e97", strokeWidth: "3.6", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M18.5 5H28v9.5", fill: "none", stroke: "#ff2e97", strokeWidth: "3.6", strokeLinecap: "round", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M8.5 8.5 6.5 7M11 6l-1-2", stroke: "#7b2ff7", strokeWidth: "1.6", strokeLinecap: "round" })
+    ] })
+  },
+  copy: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("g", { transform: "rotate(-11 16 11)", children: /* @__PURE__ */ jsx("path", { d: "M12 3.5h8l5 5v12h-13Z", fill: "#bd93ff", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }) }),
+      /* @__PURE__ */ jsx("path", { d: "M6 8.5c3-.4 6.2-.4 9.2 0l4.8 5c.35 4.6.35 9.2 0 13.8-4.7.4-9.6.4-14.3 0-.35-6.1-.35-12.6.3-18.8Z", fill: "#faf5ff", stroke: INK, strokeWidth: "2", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M15.2 8.5c.5 2.6.4 4-.1 5.2 1.7.3 3.5.2 5.1-.2Z", fill: "#d8bfff", stroke: INK, strokeWidth: "1.6", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M8 17q1.3-1.4 2.6 0t2.6 0t2.4 0", fill: "none", stroke: INK, strokeWidth: "1.4", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M8 21q1.3-1.4 2.6 0t2.6 0t2.4 0", fill: "none", stroke: INK, strokeWidth: "1.4", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M8 25q1.3-1.4 2.6 0t1.8 0", fill: "none", stroke: INK, strokeWidth: "1.4", strokeLinecap: "round" })
+    ] })
+  },
+  refresh: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M7 13a9 9 0 0 1 14-3.5", fill: "none", stroke: "#8bd450", strokeWidth: "3.2", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M21 5.5l.8 5-5-.3Z", fill: "#8bd450", stroke: INK, strokeWidth: "1.3", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M25 19a9 9 0 0 1-14 3.5", fill: "none", stroke: "#5a9e2a", strokeWidth: "3.2", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M11 26.5l-.8-5 5 .3Z", fill: "#5a9e2a", stroke: INK, strokeWidth: "1.3", strokeLinejoin: "round" })
+    ] })
+  },
+  play: {
+    // a lumpy hand-drawn triangle
+    el: /* @__PURE__ */ jsx("path", { d: "M9.4 5.4c-.8-.5-1.7 0-1.6.9.1 6.5.1 13 0 19.4-.1.9.8 1.4 1.6 1l17.6-9.8c.8-.5.8-1.6 0-2Z", fill: "#8bd450", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" })
+  },
+  pause: {
+    el: /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx("path", { d: "M7.6 5.5c1.7-.4 3.4-.4 5.1 0 .4 7 .4 14 0 21-1.7.4-3.4.4-5.1 0-.4-7-.4-14 0-21Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" }),
+      /* @__PURE__ */ jsx("path", { d: "M18.3 5.5c1.7-.4 3.4-.4 5.1 0 .4 7 .4 14 0 21-1.7.4-3.4.4-5.1 0-.4-7-.4-14 0-21Z", fill: "#ff8c42", stroke: INK, strokeWidth: "2.5", strokeLinejoin: "round" })
     ] })
   }
 };
