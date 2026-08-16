@@ -36,11 +36,15 @@ body {
   font-family: var(--rp-font-body);
   color: var(--rp-text);
   background-color: var(--rp-bg);
+  /* Layer order: opt-in time-sky tint (topmost) over the dot grid. The sky
+     layer is transparent unless html[data-sky] is set (see below). */
   background-image:
+    var(--sky-layer, linear-gradient(transparent, transparent)),
     radial-gradient(var(--page-dot-a) 1.5px, transparent 1.5px),
     radial-gradient(var(--page-dot-b) 1.5px, transparent 1.5px);
-  background-position: 0 0, 12px 12px;
-  background-size: 24px 24px;
+  background-position: center, 0 0, 12px 12px;
+  background-size: cover, 24px 24px, 24px 24px;
+  background-attachment: fixed, scroll, scroll;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -116,4 +120,337 @@ body {
   color: var(--rp-text-muted);
   font-size: 0.9rem;
   padding-top: 8px;
+}
+
+/* ==========================================================================
+   Site chrome — header, nav, control deck, footer
+   ========================================================================== */
+
+.site-top {
+  border-bottom: var(--rp-outline, 2px solid var(--rp-border));
+  background: var(--rp-surface-chrome, var(--rp-surface));
+}
+
+.site-top-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 10px clamp(12px, 3vw, 24px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--rp-text);
+  font-family: var(--rp-font-display);
+  font-size: 1.25rem;
+}
+.brand-mark { font-size: 1.3rem; line-height: 1; }
+.brand:hover .brand-name { text-decoration: underline; }
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-right: auto;
+}
+.nav-link {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--rp-radius-pill, 999px);
+  text-decoration: none;
+  color: var(--rp-text-muted);
+  font-weight: var(--rp-weight-bold, 700);
+  font-size: 0.95rem;
+}
+.nav-link:hover { color: var(--rp-text); background: var(--rp-surface-alt, rgba(0, 0, 0, 0.06)); }
+.nav-link[aria-current='page'] {
+  color: var(--rp-text-invert, #fff);
+  background: var(--rp-accent, var(--rp-violet-600));
+}
+
+.control-deck { flex-wrap: wrap; }
+.control-deck-sep {
+  width: 2px;
+  align-self: stretch;
+  min-height: 22px;
+  background: var(--rp-border);
+  opacity: 0.6;
+  margin: 0 2px;
+}
+
+/* The Konami toast floats in the corner, above everything. */
+.control-deck-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: var(--rp-z-toast, 10000);
+  max-width: min(92vw, 360px);
+}
+
+.site-foot {
+  max-width: 1040px;
+  margin: 40px auto 0;
+  padding: 16px clamp(12px, 3vw, 24px) 40px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--rp-text-muted);
+  font-size: 0.9rem;
+  border-top: 1px dashed var(--rp-border);
+}
+.site-foot-hint { opacity: 0.85; }
+kbd {
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.85em;
+  background: var(--rp-surface-alt, rgba(0, 0, 0, 0.08));
+  border: 1px solid var(--rp-border);
+  border-radius: 4px;
+  padding: 0 5px;
+}
+
+/* ==========================================================================
+   Layout helpers
+   ========================================================================== */
+
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.prose { line-height: var(--rp-leading-normal, 1.6); }
+.prose :where(h2, h3) { font-family: var(--rp-font-display); margin: 8px 0 0; }
+.prose :where(p, ul, ol) { margin: 0; }
+.prose ul, .prose ol { padding-left: 1.25rem; }
+.prose blockquote {
+  margin: 0;
+  padding: 8px 14px;
+  border-left: 4px solid var(--rp-accent, var(--rp-violet-500));
+  background: var(--rp-surface-alt, rgba(0, 0, 0, 0.05));
+  border-radius: var(--rp-radius-sm, 6px);
+  color: var(--rp-text-muted);
+}
+
+/* ==========================================================================
+   Star map (constellation nav)
+   ========================================================================== */
+
+.starmap-svg { width: 100%; height: auto; display: block; }
+.starmap-lines line {
+  stroke: var(--rp-border);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.5;
+}
+.starmap-star { cursor: pointer; }
+.starmap-star circle {
+  fill: var(--rp-sunshine);
+  stroke: var(--rp-ink, #1c1030);
+  stroke-width: 1.5;
+  transition: r var(--rp-dur-fast, 120ms) ease, filter var(--rp-dur-fast, 120ms) ease;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: starmap-twinkle 3.2s ease-in-out infinite;
+  animation-delay: var(--tw, 0s);
+}
+.starmap-star.is-hub circle { fill: var(--rp-magenta); }
+.starmap-star text {
+  fill: var(--rp-text);
+  font-family: var(--rp-font-pixel, var(--rp-font-body));
+  font-size: 11px;
+  paint-order: stroke;
+  stroke: var(--rp-bg);
+  stroke-width: 3px;
+}
+.starmap-star:hover circle,
+.starmap-star:focus-visible circle {
+  r: 8;
+  filter: drop-shadow(0 0 5px var(--rp-sunshine));
+}
+.starmap-star:focus-visible { outline: none; }
+.starmap-star:hover text { text-decoration: underline; }
+
+@keyframes starmap-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ==========================================================================
+   Telemetry gauges
+   ========================================================================== */
+
+.telemetry-row { display: grid; gap: 4px; }
+.telemetry-label {
+  font-size: 0.8rem;
+  font-weight: var(--rp-weight-bold, 700);
+  color: var(--rp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   Link list (Star Charts)
+   ========================================================================== */
+
+.link-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.link-list li { display: grid; gap: 2px; }
+.link-note { color: var(--rp-text-muted); font-size: 0.9rem; }
+
+/* ==========================================================================
+   404
+   ========================================================================== */
+
+.lost-code {
+  font-family: var(--rp-font-display);
+  font-size: clamp(3rem, 14vw, 6rem);
+  line-height: 1;
+  margin: 0;
+  color: var(--hero-color);
+  text-shadow: 3px 3px 0 var(--hero-shadow);
+}
+
+/* ==========================================================================
+   Console (Mission Control)
+   ========================================================================== */
+
+.console { display: grid; gap: 10px; min-width: min(78vw, 460px); }
+.console-scroll {
+  height: 240px;
+  overflow-y: auto;
+  padding: 10px;
+  background: #06110a;
+  color: #6dff9e;
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 6px);
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.console-line { white-space: pre-wrap; word-break: break-word; }
+.console-in { color: #d7fff0; }
+.console-err { color: #ff8fb0; }
+.console-sys { color: #7fb2ff; }
+.console-prompt { color: #ffd24a; margin-right: 6px; }
+.console-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #06110a;
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 6px);
+  padding: 6px 10px;
+}
+.console-input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #6dff9e;
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.95rem;
+}
+.console-input input::placeholder { color: #3fae6a; }
+
+/* ==========================================================================
+   Effects — time-sky, bubble trail, boot sequence, barrel roll
+   ========================================================================== */
+
+/* Time-aware sky: translucent tint layered under content (see body rule). */
+html[data-sky='dawn'] {
+  --sky-layer: linear-gradient(180deg, rgba(255, 183, 94, 0.28), rgba(255, 120, 160, 0.12) 42%, transparent 78%);
+}
+html[data-sky='day'] {
+  --sky-layer: linear-gradient(180deg, rgba(120, 190, 255, 0.24), rgba(180, 220, 255, 0.08) 50%, transparent 82%);
+}
+html[data-sky='dusk'] {
+  --sky-layer: linear-gradient(180deg, rgba(120, 60, 180, 0.30), rgba(255, 120, 90, 0.15) 46%, transparent 82%);
+}
+html[data-sky='night'] {
+  --sky-layer: linear-gradient(180deg, rgba(20, 22, 70, 0.42), rgba(40, 30, 90, 0.18) 46%, transparent 86%);
+}
+
+/* Bubble trail */
+.fx-bubble-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  overflow: hidden;
+}
+.fx-bubble {
+  position: fixed;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.9), rgba(140, 210, 255, 0.35) 60%, rgba(140, 210, 255, 0) 72%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  animation: fx-bubble-rise 900ms ease-out forwards;
+}
+@keyframes fx-bubble-rise {
+  0% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(0.4); }
+}
+
+/* Boot sequence */
+.fx-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: clamp(20px, 8vw, 80px);
+  background: #04100a;
+  color: #6dff9e;
+  cursor: pointer;
+  animation: fx-boot-in 200ms ease;
+}
+.fx-boot.is-leaving { animation: fx-boot-out 240ms ease forwards; }
+.fx-boot-screen {
+  margin: 0;
+  font-family: var(--rp-font-mono, monospace);
+  font-size: clamp(0.8rem, 2.6vw, 1.05rem);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  text-shadow: 0 0 8px rgba(109, 255, 158, 0.5);
+}
+.fx-boot-hint {
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.8rem;
+  color: #3fae6a;
+}
+@keyframes fx-boot-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-boot-out { to { opacity: 0; } }
+
+/* Barrel roll */
+@keyframes fx-roll { to { transform: rotate(360deg); } }
+body.fx-roll {
+  animation: fx-roll 900ms var(--rp-ease-pop, cubic-bezier(0.34, 1.56, 0.64, 1)) 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starmap-star circle { animation: none; }
+  .fx-boot, .fx-boot.is-leaving { animation: none; }
+  body.fx-roll { animation: none; }
+}
+
+/* ==========================================================================
+   Per-theme page-shell tuning
+   ========================================================================== */
+
+/* Sketch: soften the violet dot grid to a pencil-gray so the hand-drawn theme
+   stays monochrome and paper-like. */
+[data-rp-theme='sketch'] {
+  --page-dot-a: rgba(60, 60, 70, 0.16);
+  --page-dot-b: rgba(60, 60, 70, 0.10);
+  --hero-color: var(--rp-ink, #1c1030);
+  --hero-shadow: rgba(60, 60, 70, 0.22);
 }

@@ -1,0 +1,56 @@
+---
+/**
+ * A constellation that navigates the site. Each star is a page; faint lines
+ * join them into a little asterism. Pure SVG + CSS — ships zero JavaScript, and
+ * every star is a real <a> so it works without it. The twinkle honors
+ * prefers-reduced-motion (see global.css).
+ */
+interface Star {
+  href: string;
+  label: string;
+  x: number;
+  y: number;
+  hub?: boolean;
+}
+
+const stars: Star[] = [
+  { href: '/', label: 'Home', x: 170, y: 100, hub: true },
+  { href: '/logbook', label: 'Logbook', x: 66, y: 52 },
+  { href: '/links', label: 'Star Charts', x: 274, y: 58 },
+  { href: '/now', label: 'Now', x: 86, y: 156 },
+  { href: '/colophon', label: 'Ship', x: 258, y: 152 },
+];
+
+// Lines: hub → each outer star, plus a rim to suggest a constellation.
+const byLabel = Object.fromEntries(stars.map((s) => [s.label, s]));
+const links: [string, string][] = [
+  ['Home', 'Logbook'],
+  ['Home', 'Star Charts'],
+  ['Home', 'Now'],
+  ['Home', 'Ship'],
+  ['Logbook', 'Star Charts'],
+  ['Now', 'Ship'],
+];
+---
+
+<nav class="starmap" aria-label="Constellation navigation">
+  <svg viewBox="0 0 340 200" role="presentation" class="starmap-svg">
+    <g class="starmap-lines">
+      {
+        links.map(([a, b]) => (
+          <line x1={byLabel[a].x} y1={byLabel[a].y} x2={byLabel[b].x} y2={byLabel[b].y} />
+        ))
+      }
+    </g>
+    {
+      stars.map((s, i) => (
+        <a href={s.href} class:list={['starmap-star', { 'is-hub': s.hub }]} aria-label={`${s.label} — visit page`}>
+          <circle cx={s.x} cy={s.y} r={s.hub ? 6 : 4} style={`--tw:${(i * 0.6).toFixed(2)}s`} />
+          <text x={s.x} y={s.y + (s.y > 120 ? 20 : -12)} text-anchor="middle">
+            {s.label}
+          </text>
+        </a>
+      ))
+    }
+  </svg>
+</nav>

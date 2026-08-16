@@ -1,0 +1,30 @@
+---
+/**
+ * The ship's nav strip. Plain <a>s so it works with zero JavaScript; the
+ * current page is marked with aria-current for both a11y and styling.
+ */
+const items = [
+  { href: '/', label: 'Home', icon: 'home' },
+  { href: '/logbook', label: 'Logbook', icon: 'pencil' },
+  { href: '/links', label: 'Star Charts', icon: 'star' },
+  { href: '/now', label: 'Now', icon: 'clock' },
+  { href: '/colophon', label: 'Ship', icon: 'gear' },
+] as const;
+
+const here = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? here === '/' : here === href || here.startsWith(href + '/'));
+---
+
+<nav class="site-nav" aria-label="Primary">
+  {
+    items.map((it) => (
+      <a
+        href={it.href}
+        class="nav-link"
+        aria-current={isActive(it.href) ? 'page' : undefined}
+      >
+        {it.label}
+      </a>
+    ))
+  }
+</nav>

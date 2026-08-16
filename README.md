@@ -25,6 +25,43 @@ npm run preview  # preview the production build
   stylesheet from `@retropolis/ui/styles.css` (loaded in
   `src/layouts/Base.astro`).
 
+## What's on the site
+
+Pages (`src/pages/`):
+
+- **`/`** — home base: hero, a constellation **star map** that navigates the
+  site (`StarMap.astro`, pure SVG/CSS, zero JS), the launch-bay toy, and live
+  ship **telemetry** gauges.
+- **`/logbook`** — a blog ("transmissions"). Posts are Markdown in
+  `src/content/logbook/`, defined by the `logbook` content collection
+  (`src/content.config.ts`). Add a file with `title`, `stardate`, and `summary`
+  frontmatter and it appears automatically, newest first; set `draft: true` to
+  hide it.
+- **`/now`** — a small-web [/now page](https://nownownow.com).
+- **`/colophon`** — "ship schematics": how the site is built, plus a live
+  gallery of Retropolis components.
+- **`/links`** — "Star Charts": a curated link directory.
+- **`404`** — a "lost in space" page.
+
+### Themes & opt-in effects
+
+The header **ControlDeck** (`src/components/ControlDeck.tsx`, the one always-on
+island) gathers a **theme lab** (Paper / CRT / Sketch — just a `data-rp-theme`
+value on `<html>`) and every playful extra. To keep the page calm, nothing
+animated runs by default — each effect is behind an explicit control and honors
+`prefers-reduced-motion`:
+
+- **Boot sequence** (▶ power icon) — a skippable retro POST screen.
+- **Time-aware sky** (clock icon) — tints the background to the visitor's local
+  hour. Persisted; restored pre-paint in `Base.astro`.
+- **Bubble trail** (sparkle icon) — bubbles follow the cursor. Persisted.
+- **Mission Control** (console icon, or the <kbd>`</kbd> key) — a fake terminal
+  that navigates the site and drives the effects; type `help`.
+- **Konami code** (↑↑↓↓←→←→ B A) — a hidden barrel roll.
+
+The shared, framework-agnostic effect logic lives in `src/lib/effects.ts`;
+theme logic in `src/lib/theme.ts`.
+
 ### Updating the design system
 
 The design system is vendored (a copy of its build), so it does not auto-update.

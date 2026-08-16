@@ -1,0 +1,79 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, Alert, Divider, HyperLink, Icon } from '@retropolis/ui';
+
+// Star Charts — a curated directory of good corners of the web. A real starter
+// set; all outbound. Add, prune, and reorganize into your own constellations.
+interface LinkItem {
+  href: string;
+  name: string;
+  note: string;
+}
+interface Constellation {
+  title: string;
+  icon: 'globe' | 'gear' | 'sparkle';
+  links: LinkItem[];
+}
+
+const charts: Constellation[] = [
+  {
+    title: 'The small web',
+    icon: 'globe',
+    links: [
+      { href: 'https://neocities.org', name: 'Neocities', note: 'Free static hosting, keeper of the handmade web.' },
+      { href: 'https://indieweb.org', name: 'IndieWeb', note: 'Own your identity and your data.' },
+      { href: 'https://512kb.club', name: '512KB Club', note: 'A gallery of tiny, featherweight sites.' },
+      { href: 'https://search.marginalia.nu', name: 'Marginalia Search', note: 'A search engine for the non-commercial web.' },
+      { href: 'https://nownownow.com', name: 'nownownow', note: 'The /now-page movement.' },
+    ],
+  },
+  {
+    title: 'Tools & reference',
+    icon: 'gear',
+    links: [
+      { href: 'https://astro.build', name: 'Astro', note: 'The static-first framework this ship runs on.' },
+      { href: 'https://developer.mozilla.org', name: 'MDN Web Docs', note: 'The web platform, documented well.' },
+      { href: 'https://caniuse.com', name: 'Can I use', note: 'Browser support tables for everything.' },
+    ],
+  },
+];
+---
+
+<Base title="Star Charts · Pugglenaut" description="A curated map of favorite links across the small web.">
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Star Charts</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A map of favorite links across the wider web. Bring your own telescope.
+      </p>
+    </header>
+
+    {
+      charts.map((c) => (
+        <Window title={`${c.title.toLowerCase().replace(/\s+/g, '-')}.map`} icon={c.icon}>
+          <ul class="link-list">
+            {c.links.map((l) => (
+              <li>
+                <HyperLink href={l.href} external>
+                  {l.name}
+                </HyperLink>
+                <span class="link-note">{l.note}</span>
+              </li>
+            ))}
+          </ul>
+        </Window>
+      ))
+    }
+
+    <Alert tone="info" title="Starter chart" icon="star">
+      This is a seed set to make the page real — swap in your own constellations
+      whenever you like.
+    </Alert>
+
+    <Divider variant="dotted" />
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

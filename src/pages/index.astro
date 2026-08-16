@@ -1,24 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
 import LaunchControl from '../components/LaunchControl.tsx';
-import ThemeToggle from '../components/ThemeToggle.tsx';
-import {
-  Window,
-  Card,
-  Badge,
-  Marquee,
-  Divider,
-  HyperLink,
-  Icon,
-} from '@retropolis/ui';
+import PuggleTelemetry from '../components/PuggleTelemetry.tsx';
+import StarMap from '../components/StarMap.astro';
+import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui';
 ---
 
 <Base>
   <main class="page stack">
-    <div class="cluster" style="justify-content: flex-end;">
-      <ThemeToggle client:load />
-    </div>
-
     <Marquee speed={16}>
       ✦ Welcome to pugglenaut.com — now boarding for low orbit ✦ built with Astro
       &amp; the Retropolis design system ✦ mind the cosmic dust ✦
@@ -37,46 +26,59 @@ import {
       </div>
     </header>
 
-    <Window title="mission-control.exe" icon="rocket" status="Systems nominal.">
-      <div class="stack">
-        <p style="margin: 0;">
-          The launch bay is powered by an interactive React island — everything
-          else on this page renders to static HTML and ships no JavaScript.
-        </p>
-        <LaunchControl client:visible />
-      </div>
+    <Window title="navigation.chart" icon="star" status="Pick a star to set course.">
+      <StarMap />
     </Window>
+
+    <div class="two-col">
+      <Window title="launch-bay.exe" icon="rocket" status="Systems nominal.">
+        <div class="stack" style="gap: 12px;">
+          <p style="margin: 0;">
+            The launch bay is an interactive React island — everything else on
+            this page renders to static HTML and ships no JavaScript.
+          </p>
+          <LaunchControl client:visible />
+        </div>
+      </Window>
+
+      <Window title="life-support.sys" icon="heart" status="All readings green.">
+        <PuggleTelemetry client:visible />
+      </Window>
+    </div>
 
     <Divider variant="rainbow" label="the neighborhood" />
 
     <section class="card-grid">
       <Card title="Logbook" icon="pencil" tone="violet">
-        <p style="margin: 0;">
+        <p style="margin: 0 0 12px;">
           Dispatches from orbit — dev notes, doodles, and the occasional warble
           into the void.
         </p>
+        <HyperLink href="/logbook">Open the logbook →</HyperLink>
       </Card>
       <Card title="Star Charts" icon="star" tone="teal">
-        <p style="margin: 0;">
+        <p style="margin: 0 0 12px;">
           A growing map of favorite links across the small web. Bring your own
           telescope.
         </p>
+        <HyperLink href="/links">Browse the charts →</HyperLink>
       </Card>
       <Card title="Signal" icon="mail" tone="magenta">
-        <p style="margin: 0;">
-          Say hi:{' '}
-          <HyperLink href="mailto:hello@pugglenaut.com">
-            hello@pugglenaut.com
-          </HyperLink>
+        <p style="margin: 0 0 12px;">
+          Say hi across the void:
         </p>
+        <HyperLink href="mailto:hello@pugglenaut.com">hello@pugglenaut.com</HyperLink>
       </Card>
     </section>
 
     <Divider variant="dashed" />
 
-    <footer class="site-footer cluster" style="justify-content: center;">
-      <Icon name="heart" size={18} title="made with love" />
-      <span>Made on the small web · {new Date().getFullYear()}</span>
-    </footer>
+    <section class="stack" style="gap: 8px;">
+      <p class="hero-tagline" style="margin: 0;">
+        Poke around: flip the <strong>theme lab</strong> up top, tint the sky to
+        your local hour, or press <kbd>`</kbd> to open mission control. There may
+        be a cheat code or two hiding in here. 🛰️
+      </p>
+    </section>
   </main>
 </Base>

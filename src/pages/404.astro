@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, Button, HyperLink } from '@retropolis/ui';
+---
+
+<Base title="Lost in space · Pugglenaut" description="This page drifted out of orbit.">
+  <main class="page stack" style="min-height: 52vh; justify-content: center;">
+    <Window title="signal-lost.exe" icon="warning" status="No carrier.">
+      <div class="stack lost-in-space" style="gap: 16px; text-align: center;">
+        <p class="lost-code" aria-hidden="true">404</p>
+        <h1 style="margin: 0; font-family: var(--rp-font-display);">Lost in space</h1>
+        <p style="margin: 0; color: var(--rp-text-muted);">
+          This page drifted out of orbit — or was never charted. The puggle is
+          floating out here somewhere, tapping the glass.
+        </p>
+        <div class="cluster" style="justify-content: center;">
+          <a href="/"><Button variant="primary" icon="home">Return to home base</Button></a>
+        </div>
+        <p style="margin: 0;">
+          …or open <HyperLink href="/logbook">the logbook</HyperLink> and
+          <HyperLink href="/links">the star charts</HyperLink>.
+        </p>
+      </div>
+    </Window>
+  </main>
+</Base>
