@@ -1,0 +1,45 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { Window, Badge, Tag, Divider, HyperLink } from '@retropolis/ui';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('logbook', ({ data }) => !data.draft);
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Base title={`${entry.data.title} · Logbook`} description={entry.data.summary}>
+  <main class="page stack">
+    <p style="margin: 0;">
+      <HyperLink href="/logbook">← all transmissions</HyperLink>
+    </p>
+
+    <Window title={`${entry.id}.log`} icon="pencil" status={`stardate ${fmt(entry.data.stardate)}`}>
+      <article class="prose stack" style="gap: 16px;">
+        <header class="stack" style="gap: 8px;">
+          <h1 style="margin: 0; font-family: var(--rp-font-display);">{entry.data.title}</h1>
+          <div class="cluster">
+            <Badge tone="teal">stardate {fmt(entry.data.stardate)}</Badge>
+            {entry.data.tags.map((t) => <Tag tone="violet">{t}</Tag>)}
+          </div>
+        </header>
+        <Divider variant="solid" />
+        <Content />
+      </article>
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, Tag, Divider, HyperLink, Alert } from '@retropolis/ui';
+
+// A /now page (nownownow.com style): what the puggle is currently orbiting.
+// Update the date whenever this changes.
+const updated = 'August 16, 2026';
+---
+
+<Base title="Now · Pugglenaut" description="What the pugglenaut is currently orbiting.">
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">/now</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A snapshot of what's on the console right now — the small-web
+        <HyperLink href="https://nownownow.com/about" external>/now page</HyperLink>
+        tradition.
+      </p>
+    </header>
+
+    <Window title="current-orbit.txt" icon="globe" status={`Last updated ${updated}`}>
+      <div class="prose stack" style="gap: 16px;">
+        <p style="margin: 0;">
+          Currently in a low, quiet orbit — mostly heads-down building. The big
+          cargo (the real projects) is still sealed in the hold; when it's ready
+          to show, it'll dock here.
+        </p>
+
+        <div>
+          <strong>On the workbench</strong>
+          <div class="cluster" style="margin-top: 8px;">
+            <Tag tone="violet" icon="rocket">tending this ship</Tag>
+            <Tag tone="teal" icon="gear">the Retropolis design system</Tag>
+            <Tag tone="sunshine" icon="star">small-web tinkering</Tag>
+          </div>
+        </div>
+
+        <div>
+          <strong>Refueling on</strong>
+          <div class="cluster" style="margin-top: 8px;">
+            <Tag tone="magenta" icon="music">something with a good bassline</Tag>
+            <Tag tone="tangerine" icon="bookmark">a stack of half-read tabs</Tag>
+            <Tag tone="lime" icon="heart">good coffee, better snacks</Tag>
+          </div>
+        </div>
+      </div>
+    </Window>
+
+    <Alert tone="info" title="This page is a placeholder" icon="info">
+      Honest but generic for now — swap in real specifics whenever you like. The
+      structure's here; only the words need updating.
+    </Alert>
+
+    <Divider variant="dotted" />
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

@@ -1,0 +1,115 @@
+---
+import Base from '../layouts/Base.astro';
+import {
+  Window,
+  Card,
+  Button,
+  Badge,
+  Tag,
+  Alert,
+  Progress,
+  HitCounter,
+  Divider,
+  HyperLink,
+  Accordion,
+} from '@retropolis/ui';
+
+const buildFacts = [
+  {
+    id: 'astro',
+    title: 'Astro, static-first',
+    icon: 'rocket',
+    content:
+      'Every page renders to static HTML at build time. The interactive bits (this control deck, the launch bay, the console) are React "islands" that hydrate on their own — the rest ships zero JavaScript.',
+  },
+  {
+    id: 'retropolis',
+    title: 'The Retropolis design system',
+    icon: 'star',
+    content:
+      'All the chrome — windows, buttons, badges, marquees — comes from an in-house component kit. It is token-driven (CSS custom properties on :root), so the theme lab restyles the entire site by swapping one attribute.',
+  },
+  {
+    id: 'pages',
+    title: 'GitHub Pages + Actions',
+    icon: 'gear',
+    content:
+      'Pushes to main build with Astro and deploy to GitHub Pages. The design system is vendored in, so the site always builds against a pinned, known-good copy.',
+  },
+];
+---
+
+<Base title="Ship schematics · Pugglenaut" description="How this site is built — Astro plus the Retropolis design system.">
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Ship schematics</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        The colophon — what this little spacecraft is made of, and a live parts
+        catalog of the design system that powers it.
+      </p>
+    </header>
+
+    <Window title="how-it-works.txt" icon="info">
+      <Accordion client:visible items={buildFacts} defaultOpen={['astro']} />
+    </Window>
+
+    <Divider variant="rainbow" label="parts catalog" />
+
+    <p class="hero-tagline" style="margin: 0;">
+      Everything below is a real Retropolis component, rendered live. Flip the
+      theme lab up top and watch the whole catalog change outfits.
+    </p>
+
+    <div class="card-grid">
+      <Card title="Buttons" icon="rocket" tone="violet">
+        <div class="cluster">
+          <Button variant="primary">Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="sunshine" icon="star">Sunshine</Button>
+          <Button variant="danger">Danger</Button>
+          <Button variant="ghost">Ghost</Button>
+        </div>
+      </Card>
+
+      <Card title="Badges & tags" icon="sparkle" tone="magenta">
+        <div class="cluster" style="margin-bottom: 12px;">
+          <Badge tone="magenta" blink>new!</Badge>
+          <Badge tone="teal">v0.1</Badge>
+          <Badge tone="lime">live</Badge>
+          <Badge tone="slate">beta</Badge>
+        </div>
+        <div class="cluster">
+          <Tag tone="violet" icon="heart">favorite</Tag>
+          <Tag tone="tangerine" icon="bookmark">saved</Tag>
+        </div>
+      </Card>
+
+      <Card title="Progress" icon="gear" tone="teal">
+        <div class="stack" style="gap: 10px;">
+          <Progress value={72} tone="teal" showValue />
+          <Progress value={40} tone="sunshine" showValue />
+          <Progress value={91} tone="magenta" showValue />
+        </div>
+      </Card>
+
+      <Card title="Alerts" icon="bell" tone="sunshine">
+        <div class="stack" style="gap: 10px;">
+          <Alert tone="success" title="Docked">Payload secured.</Alert>
+          <Alert tone="warning" title="Low snacks">Consider a resupply.</Alert>
+        </div>
+      </Card>
+    </div>
+
+    <Window title="visitor-log.exe" icon="user" status="Odometer is decorative — no tracking here.">
+      <div class="cluster" style="justify-content: center;">
+        <HitCounter count={40096} label="pugglenauts aboard" />
+      </div>
+    </Window>
+
+    <Divider variant="dashed" />
+
+    <p class="site-footer" style="margin: 0;">
+      Source lives on GitHub · <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>
