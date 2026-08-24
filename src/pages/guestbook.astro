@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { Divider, HyperLink } from '@retropolis/ui';
+import Guestbook from '../components/Guestbook.tsx';
+
+// The sign-the-wall guestbook: leave a note for the pugglenaut. The island
+// handles the live/preview split depending on whether the backend is wired up.
+---
+
+<Base title="Guestbook · Pugglenaut" description="Sign the wall and leave a note for the pugglenaut.">
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Guestbook</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        Sign the wall — leave a note, a doodle in words, or just a friendly
+        hello for the pugglenaut passing overhead.
+      </p>
+    </header>
+
+    <Guestbook client:visible />
+
+    <Divider variant="dotted" />
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

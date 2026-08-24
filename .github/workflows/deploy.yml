@@ -34,6 +34,12 @@ jobs:
 
       - name: Build with Astro
         run: npm run build
+        env:
+          # Points the frontend at the deployed Cloudflare Worker (see backend/).
+          # Set this as a repository Variable (Settings → Secrets and variables →
+          # Actions → Variables). Empty is fine — the site falls back to a
+          # static/local experience for the live features.
+          PUBLIC_API_BASE: ${{ vars.PUBLIC_API_BASE }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

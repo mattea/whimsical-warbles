@@ -1,0 +1,93 @@
+/*
+ * Guestbook island styles. Everything is prefixed `pg-gb-` and leans on the
+ * Retropolis `--rp-*` custom properties so the list, entries, and form all
+ * read correctly across the Paper / CRT / Sketch themes.
+ */
+
+.pg-gb {
+  --pg-gb-gap: 20px;
+}
+
+.pg-gb.stack {
+  gap: var(--pg-gb-gap);
+}
+
+/* --- Sign form ------------------------------------------------------------ */
+
+.pg-gb-form.stack {
+  gap: 14px;
+}
+
+.pg-gb-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Visually-hidden honeypot: kept in the DOM for bots, off-screen for humans
+ * and assistive tech. */
+.pg-gb-hp {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Entry list ----------------------------------------------------------- */
+
+.pg-gb-list.stack {
+  gap: 14px;
+}
+
+.pg-gb-status {
+  margin: 0;
+  padding: 8px 2px;
+  color: var(--rp-text-muted);
+  font-family: var(--rp-font-mono);
+  font-size: 0.9rem;
+}
+
+/* --- Single entry --------------------------------------------------------- */
+
+.pg-gb-entry {
+  /* Card already brings surface/border/shadow; just tune the inner rhythm. */
+  background: var(--rp-surface-alt, var(--rp-surface));
+}
+
+.pg-gb-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.pg-gb-entry-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pg-gb-entry-name {
+  font-family: var(--rp-font-display);
+  font-weight: 700;
+  color: var(--rp-violet-600, var(--rp-text));
+  overflow-wrap: anywhere;
+}
+
+.pg-gb-entry-date {
+  flex: 0 0 auto;
+}
+
+.pg-gb-entry-message {
+  margin: 0;
+  color: var(--rp-text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

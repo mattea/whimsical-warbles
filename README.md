@@ -37,10 +37,19 @@ Pages (`src/pages/`):
   (`src/content.config.ts`). Add a file with `title`, `stardate`, and `summary`
   frontmatter and it appears automatically, newest first; set `draft: true` to
   hide it.
+- **`/game`** — "Arcade": *Puggle Drift*, a TypeScript `<canvas>` game
+  (`src/components/PuggleGame.tsx`). One-button jetpack dodger; local best in
+  `localStorage`, with a global leaderboard when the backend is live.
+- **`/guestbook`** — sign-the-wall guestbook (backend-backed; a read-only sample
+  wall in fallback mode).
+- **`/contact`** — a "Signal" form that delivers a message (backend-backed; a
+  prefilled `mailto:` in fallback mode).
 - **`/now`** — a small-web [/now page](https://nownownow.com).
 - **`/colophon`** — "ship schematics": how the site is built, plus a live
   gallery of Retropolis components.
 - **`/links`** — "Star Charts": a curated link directory.
+- **`/rss.xml`** — an RSS feed of the Logbook. A sitemap is generated too
+  (`@astrojs/sitemap`).
 - **`404`** — a "lost in space" page.
 
 ### Themes & opt-in effects
@@ -61,6 +70,28 @@ animated runs by default — each effect is behind an explicit control and honor
 
 The shared, framework-agnostic effect logic lives in `src/lib/effects.ts`;
 theme logic in `src/lib/theme.ts`.
+
+## Live features & the backend
+
+The guestbook, contact form, visitor hit counter, status beacon, and game
+leaderboard talk to a small **Cloudflare Worker** (D1 + KV) in
+[`backend/`](./backend). GitHub Pages only serves static files, so the Worker is
+deployed separately — see [`backend/README.md`](./backend/README.md) for the
+`wrangler` walkthrough (create D1 + KV, set secrets, deploy).
+
+Everything **degrades gracefully**: the frontend reads the Worker URL from the
+`PUBLIC_API_BASE` build-time env var (see `src/lib/api.ts`). When it's empty —
+the default — `apiEnabled` is false and each feature falls back to a
+static/local experience (sample guestbook, `mailto:` contact, decorative
+counter, neutral beacon, local-only best score), so the site is fully functional
+before any backend exists.
+
+To switch the live features on: deploy the Worker, then set a repository
+**Variable** named `PUBLIC_API_BASE` (Settings → Secrets and variables →
+Actions → Variables) to the Worker URL (e.g.
+`https://pugglenaut-api.<subdomain>.workers.dev`, no trailing slash). The deploy
+workflow passes it through at build time. Flip the status beacon with an
+authenticated `POST /api/status` (see `backend/README.md`).
 
 ### Updating the design system
 

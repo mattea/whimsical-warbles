@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import LaunchControl from '../components/LaunchControl.tsx';
 import PuggleTelemetry from '../components/PuggleTelemetry.tsx';
+import VisitorCounter from '../components/VisitorCounter.tsx';
 import StarMap from '../components/StarMap.astro';
 import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui';
 ---
@@ -56,6 +57,20 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
         </p>
         <HyperLink href="/logbook">Open the logbook →</HyperLink>
       </Card>
+      <Card title="Arcade" icon="rocket" tone="sunshine">
+        <p style="margin: 0 0 12px;">
+          Pilot the pugglenaut through an asteroid field in <em>Puggle Drift</em>
+          — one-button, high-score chasing.
+        </p>
+        <HyperLink href="/game">Play the game →</HyperLink>
+      </Card>
+      <Card title="Guestbook" icon="chat" tone="magenta">
+        <p style="margin: 0 0 12px;">
+          Sign the wall — the classic 90s ritual. Leave a mark before you drift
+          onward.
+        </p>
+        <HyperLink href="/guestbook">Sign the guestbook →</HyperLink>
+      </Card>
       <Card title="Star Charts" icon="star" tone="teal">
         <p style="margin: 0 0 12px;">
           A growing map of favorite links across the small web. Bring your own
@@ -63,13 +78,18 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
         </p>
         <HyperLink href="/links">Browse the charts →</HyperLink>
       </Card>
-      <Card title="Signal" icon="mail" tone="magenta">
+      <Card title="Signal" icon="mail" tone="violet">
         <p style="margin: 0 0 12px;">
-          Say hi across the void:
+          Beam a message across the void, or say hi the old-fashioned way at
+          <HyperLink href="mailto:hello@pugglenaut.com">hello@pugglenaut.com</HyperLink>.
         </p>
-        <HyperLink href="mailto:hello@pugglenaut.com">hello@pugglenaut.com</HyperLink>
+        <HyperLink href="/contact">Open a channel →</HyperLink>
       </Card>
     </section>
+
+    <div class="cluster" style="justify-content: center;">
+      <VisitorCounter client:visible page="home" label="pugglenauts aboard" />
+    </div>
 
     <Divider variant="dashed" />
 

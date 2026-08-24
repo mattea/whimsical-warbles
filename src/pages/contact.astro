@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { Divider, HyperLink } from '@retropolis/ui';
+import ContactForm from '../components/ContactForm.tsx';
+
+// The Contact ("Signal") page: beam a note down to the pugglenaut. The island
+// handles the live/mailto split depending on whether the backend is wired up.
+---
+
+<Base title="Signal · Pugglenaut" description="Beam a note down to the pugglenaut.">
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Signal</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        Open a channel — say hello, ask a question, or send the pugglenaut a
+        note. It'll reach the console either way.
+      </p>
+    </header>
+
+    <ContactForm client:visible />
+
+    <Divider variant="dotted" />
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

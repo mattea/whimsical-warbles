@@ -207,6 +207,20 @@ body {
   border-top: 1px dashed var(--rp-border);
 }
 .site-foot-hint { opacity: 0.85; }
+.site-foot-links {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.site-foot-links a {
+  color: var(--rp-text-muted);
+  text-decoration: none;
+  font-weight: var(--rp-weight-bold, 700);
+}
+.site-foot-links a:hover {
+  color: var(--rp-text);
+  text-decoration: underline;
+}
 kbd {
   font-family: var(--rp-font-mono, monospace);
   font-size: 0.85em;
