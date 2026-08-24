@@ -1,0 +1,15 @@
+{
+  "name": "pugglenaut-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker backend for the Pugglenaut personal website.",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "db:init": "wrangler d1 execute pugglenaut --file schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241106.0",
+    "wrangler": "^3.86.0"
+  }
+}

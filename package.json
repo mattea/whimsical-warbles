@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
     "@retropolis/ui": "file:vendor/retropolis-ui",
     "astro": "^5.2.0",
     "react": "^18.3.1",

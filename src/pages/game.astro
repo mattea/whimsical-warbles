@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, HyperLink } from '@retropolis/ui';
+import PuggleGame from '../components/PuggleGame.tsx';
+
+// The arcade: a single endless jetpack-dodger, playable right in the browser.
+---
+
+<Base
+  title="Arcade · Puggle Drift · Pugglenaut"
+  description="Puggle Drift — an endless jetpack dodger. Fly the pugglenaut past the asteroid belt and see how far you drift."
+>
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Arcade</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        One game, one mission: keep the pugglenaut airborne. Hold to thrust,
+        release to fall, dodge the rocks, and scoop up stars.
+      </p>
+    </header>
+
+    <Window title="puggle-drift.exe" icon="rocket">
+      <div class="stack" style="gap: 12px;">
+        <p class="pg-howto" style="margin: 0;">
+          Hold <kbd>Space</kbd> / <kbd>↑</kbd> / <kbd>W</kbd> — or press and hold
+          the play area — to fire the jetpack. Let go to drift back down.
+        </p>
+        <PuggleGame client:load />
+      </div>
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

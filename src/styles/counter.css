@@ -1,0 +1,13 @@
+/* Wrapper for the live VisitorCounter island. The odometer itself is styled by
+   the Retropolis design system (HitCounter) — this only centers it and gives it
+   a little breathing room. Spacing uses the --rp-* tokens so it stays in step
+   with both the Paper and CRT themes. */
+
+.pg-vc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Vertical rhythm around the counter; horizontal is 0 so it can sit flush
+     inside tighter containers (e.g. a console panel). */
+  padding-block: var(--rp-space-sm, 0.75rem);
+}

@@ -1,0 +1,70 @@
+/* StatusBeacon — a small inline-flex pill (dot + short label) for the header.
+   Class-prefixed `pg-sb-`; themed entirely through --rp-* tokens so it reads
+   correctly in Paper, CRT and Sketch. Sized to avoid any layout shift: it
+   renders the same box whether idle, online or offline. */
+
+.pg-sb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1.5px solid var(--rp-border);
+  border-radius: var(--rp-radius-pill, 999px);
+  background: var(--rp-surface);
+  color: var(--rp-text-muted);
+  font-family: var(--rp-font-pixel, var(--rp-font-mono));
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.pg-sb-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--rp-border);
+  /* Neutral / idle default: a soft slate dot. */
+  background: var(--rp-slate);
+}
+
+/* Online → a bright lime dot with a gentle glow + pulse. */
+.pg-sb-online .pg-sb-dot {
+  background: var(--rp-lime);
+  border-color: var(--rp-lime-dark, var(--rp-lime));
+  box-shadow: 0 0 0 0 var(--rp-lime);
+  animation: pg-sb-pulse 2s ease-out infinite;
+}
+
+.pg-sb-online .pg-sb-label {
+  color: var(--rp-text);
+}
+
+/* Offline → a dim slate dot, no motion. */
+.pg-sb-offline .pg-sb-dot {
+  background: var(--rp-slate);
+  opacity: 0.7;
+}
+
+@keyframes pg-sb-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--rp-lime) 70%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--rp-lime) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--rp-lime) 0%, transparent);
+  }
+}
+
+/* Respect reduced-motion: hold the dot still (keep the glow ring subtle). */
+@media (prefers-reduced-motion: reduce) {
+  .pg-sb-online .pg-sb-dot {
+    animation: none;
+    box-shadow: 0 0 4px 1px color-mix(in srgb, var(--rp-lime) 50%, transparent);
+  }
+}

@@ -3,6 +3,7 @@ import '@retropolis/ui/styles.css';
 import '../styles/global.css';
 import SiteNav from '../components/SiteNav.astro';
 import ControlDeck from '../components/ControlDeck.tsx';
+import StatusBeacon from '../components/StatusBeacon.tsx';
 
 interface Props {
   title?: string;
@@ -35,6 +36,7 @@ const year = new Date().getFullYear();
     <meta property="og:url" content={canonical} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Pugglenaut · Logbook" href="/rss.xml" />
 
     <!-- Apply the saved theme and (opt-in) time-sky before paint, so neither
          flashes. Paper is the default; CRT/Sketch are opt-in via the theme lab.
@@ -64,6 +66,7 @@ const year = new Date().getFullYear();
           <span class="brand-mark" aria-hidden="true">🛰️</span>
           <span class="brand-name">pugglenaut</span>
         </a>
+        <StatusBeacon client:load />
         <SiteNav />
         <ControlDeck client:load />
       </div>
@@ -73,6 +76,11 @@ const year = new Date().getFullYear();
 
     <footer class="site-foot">
       <span>Made on the small web · {year}</span>
+      <nav class="site-foot-links" aria-label="Footer">
+        <a href="/contact">Contact</a>
+        <a href="/guestbook">Guestbook</a>
+        <a href="/rss.xml">RSS</a>
+      </nav>
       <span class="site-foot-hint">psst — press <kbd>`</kbd> for mission control</span>
     </footer>
   </body>
