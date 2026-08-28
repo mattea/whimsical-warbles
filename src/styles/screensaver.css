@@ -1,0 +1,63 @@
+/* Screensaver overlay — the full-screen After Dark homage.
+   Class-prefixed `pg-ss-`. The overlay owns its own dark starfield background
+   (a deep radial gradient tinted by the theme's --rp-* tokens, with a couple of
+   soft nebula glows); the <canvas> on top is transparent and draws the drifting
+   pugglenauts, rockets and twinkling stars. Sits above everything and fades in
+   gently. Only in the DOM while active — no work when the site is in use. */
+
+.pg-ss-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000; /* above every site chrome + island */
+  overflow: hidden;
+  cursor: none;
+  /* Deep space, keyed off the current theme with dark fallbacks. */
+  background-color: #05060f;
+  background-image:
+    radial-gradient(
+      120% 90% at 50% 40%,
+      color-mix(in srgb, var(--rp-violet-600, #6621d6) 26%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      70% 60% at 82% 78%,
+      color-mix(in srgb, var(--rp-teal, #00b3b3) 20%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      140% 120% at 50% 50%,
+      #0b0d1e,
+      #05060f 68%,
+      #030309 100%
+    );
+  animation: pg-ss-fade-in 700ms ease-out both;
+  /* Never trap focus / never scroll the overlay itself. */
+  touch-action: none;
+  user-select: none;
+}
+
+.pg-ss-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes pg-ss-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Belt-and-braces: if this overlay is ever present under reduced-motion,
+   drop the fade so nothing animates in. (The component already declines to
+   auto-activate under reduced-motion.) */
+@media (prefers-reduced-motion: reduce) {
+  .pg-ss-overlay {
+    animation: none;
+  }
+}

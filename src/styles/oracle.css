@@ -1,0 +1,323 @@
+/* ==========================================================================
+   Ask the Cosmos — styles for the <Oracle /> island.
+
+   Everything is scoped under `.pg-oracle-*` classnames so nothing leaks into
+   the rest of the site. Colors lean entirely on the Retropolis `--rp-*` custom
+   properties, so the orb and layout recolor automatically across the
+   Paper / CRT / Sketch themes.
+
+   The shake animation is disabled under `prefers-reduced-motion`.
+   ========================================================================== */
+
+.pg-oracle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* --- The cosmic orb ------------------------------------------------------ */
+
+.pg-oracle-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(240px, 62vw);
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  margin: 4px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  /* The button itself only transforms during a swirl (see .is-swirling). */
+  transition: transform 120ms ease;
+}
+
+.pg-oracle-orb:focus-visible {
+  outline: 3px dashed var(--rp-teal);
+  outline-offset: 8px;
+}
+
+.pg-oracle-orb:active {
+  transform: scale(0.97);
+}
+
+/* A soft aura behind the planet. */
+.pg-oracle-orb-glow {
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--rp-magenta) 55%, transparent) 0%,
+    color-mix(in srgb, var(--rp-violet-600, #6621d6) 35%, transparent) 45%,
+    transparent 70%
+  );
+  filter: blur(6px);
+  opacity: 0.85;
+  animation: pg-oracle-pulse 4.5s ease-in-out infinite;
+}
+
+/* The planet body — layered radial gradients for a lit sphere. */
+.pg-oracle-orb-body {
+  position: relative;
+  width: 78%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 3px solid var(--rp-border);
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      color-mix(in srgb, var(--rp-teal) 70%, #fff 30%) 0%,
+      var(--rp-teal) 22%,
+      var(--rp-violet-600, #6621d6) 60%,
+      color-mix(in srgb, var(--rp-violet-600, #6621d6) 60%, #000 40%) 100%
+    );
+  box-shadow:
+    var(--rp-shadow-hard, 3px 3px 0 0 #000),
+    inset -10px -12px 26px color-mix(in srgb, #000 55%, transparent),
+    inset 8px 8px 22px color-mix(in srgb, var(--rp-sunshine) 22%, transparent);
+}
+
+/* A drifting swirl of "cosmic clouds" across the planet. */
+.pg-oracle-orb-swirl {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse 60% 22% at 30% 40%,
+      color-mix(in srgb, var(--rp-magenta) 70%, transparent) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 55% 18% at 70% 65%,
+      color-mix(in srgb, var(--rp-sunshine) 55%, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 40% 14% at 55% 25%,
+      color-mix(in srgb, var(--rp-lime) 55%, transparent) 0%,
+      transparent 60%
+    );
+  opacity: 0.55;
+  animation: pg-oracle-drift 12s linear infinite;
+}
+
+/* A crisp glossy highlight in the upper-left. */
+.pg-oracle-orb-shine {
+  position: absolute;
+  top: 12%;
+  left: 16%;
+  width: 34%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.35) 40%,
+    transparent 72%
+  );
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+/* The tilted planetary ring, drawn as an inline SVG ellipse. */
+.pg-oracle-orb-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 0 color-mix(in srgb, var(--rp-border) 60%, transparent));
+  animation: pg-oracle-ring-bob 6s ease-in-out infinite;
+}
+
+/* A tiny star that orbits the planet. */
+.pg-oracle-orb-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px;
+  transform-origin: center;
+  animation: pg-oracle-orbit 9s linear infinite;
+  pointer-events: none;
+}
+
+.pg-oracle-orb-star svg {
+  display: block;
+  filter: drop-shadow(0 0 4px var(--rp-sunshine));
+}
+
+/* --- Swirl / shake while consulting -------------------------------------- */
+
+.pg-oracle-orb.is-swirling {
+  animation: pg-oracle-shake 0.5s ease-in-out infinite;
+}
+
+.pg-oracle-orb.is-swirling .pg-oracle-orb-swirl {
+  animation-duration: 1.6s;
+  opacity: 0.85;
+}
+
+.pg-oracle-orb.is-swirling .pg-oracle-orb-glow {
+  animation-duration: 1s;
+  opacity: 1;
+}
+
+/* --- Form + controls ----------------------------------------------------- */
+
+.pg-oracle-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(440px, 100%);
+}
+
+.pg-oracle-hint {
+  margin: 0;
+  max-width: 40ch;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--rp-text-muted);
+}
+
+/* --- The revealed fortune ------------------------------------------------ */
+
+.pg-oracle-result {
+  width: min(440px, 100%);
+  animation: pg-oracle-reveal 0.35s ease-out both;
+}
+
+.pg-oracle-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.pg-oracle-question {
+  margin: 0;
+  font-family: var(--rp-font-mono);
+  font-size: 0.95rem;
+  color: var(--rp-text-muted);
+  font-style: italic;
+}
+
+.pg-oracle-fortune {
+  margin: 0;
+  font-family: var(--rp-font-display);
+  font-size: clamp(1.2rem, 4.5vw, 1.65rem);
+  line-height: 1.25;
+  color: var(--rp-text);
+}
+
+.pg-oracle-again {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* --- Screen-reader-only helper (scoped, so it can't clash) --------------- */
+
+.pg-oracle-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Keyframes ----------------------------------------------------------- */
+
+@keyframes pg-oracle-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-4px, 2px) rotate(-3deg);
+  }
+  40% {
+    transform: translate(4px, -2px) rotate(3deg);
+  }
+  60% {
+    transform: translate(-3px, -3px) rotate(-2deg);
+  }
+  80% {
+    transform: translate(3px, 3px) rotate(2deg);
+  }
+}
+
+@keyframes pg-oracle-drift {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pg-oracle-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pg-oracle-ring-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pg-oracle-orbit {
+  from {
+    transform: rotate(0deg) translateX(118px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(118px) rotate(-360deg);
+  }
+}
+
+@keyframes pg-oracle-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Reduced motion: settle everything ----------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-oracle-orb.is-swirling,
+  .pg-oracle-orb-glow,
+  .pg-oracle-orb-swirl,
+  .pg-oracle-orb-ring,
+  .pg-oracle-orb-star,
+  .pg-oracle-result {
+    animation: none !important;
+  }
+}

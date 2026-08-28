@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { Window, HyperLink } from '@retropolis/ui';
+import CometSnake from '../../components/CometSnake.tsx';
+
+// Arcade cabinet #2: Comet Snake — a chill retro snake reimagined as a comet.
+---
+
+<Base
+  title="Arcade · Comet Snake · Pugglenaut"
+  description="Comet Snake — a chill retro snake reimagined as a comet. Steer the pugglenaut, eat twinkling stars, grow your glowing tail, and don't bite yourself. Friendly wrap-around edges."
+>
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Comet Snake</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A chill retro snake reimagined as a comet. Trail a glowing tail across
+        the grid, scoop up twinkling stars, and mind your own wake — the edges
+        wrap, but you can still bite yourself.
+      </p>
+    </header>
+
+    <Window title="comet-snake.exe" icon="star">
+      <div class="stack" style="gap: 12px;">
+        <p class="pg-snake-howto" style="margin: 0;">
+          Steer with <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> or
+          <kbd>WASD</kbd> (swipe on touch). Eat stars to grow; running into your
+          own tail ends the run. Press <kbd>Space</kbd> to start.
+        </p>
+        <CometSnake client:load />
+      </div>
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/game">← back to the Arcade</HyperLink>
+      {' · '}
+      <HyperLink href="/">home base</HyperLink>
+    </p>
+  </main>
+</Base>

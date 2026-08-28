@@ -4,6 +4,7 @@ import '../styles/global.css';
 import SiteNav from '../components/SiteNav.astro';
 import ControlDeck from '../components/ControlDeck.tsx';
 import StatusBeacon from '../components/StatusBeacon.tsx';
+import Screensaver from '../components/Screensaver.tsx';
 
 interface Props {
   title?: string;
@@ -34,6 +35,15 @@ const year = new Date().getFullYear();
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/og.png', Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL('/og.png', Astro.site)} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title="Pugglenaut · Logbook" href="/rss.xml" />
@@ -73,6 +83,11 @@ const year = new Date().getFullYear();
     </header>
 
     <slot />
+
+    <!-- Opt-in After Dark-style screensaver (off by default; toggled from the
+         control deck or the `screensaver` console command). Renders nothing
+         until it idles in. -->
+    <Screensaver client:idle />
 
     <footer class="site-foot">
       <span>Made on the small web · {year}</span>
