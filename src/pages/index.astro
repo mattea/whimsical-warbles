@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import LaunchControl from '../components/LaunchControl.tsx';
 import PuggleTelemetry from '../components/PuggleTelemetry.tsx';
 import VisitorCounter from '../components/VisitorCounter.tsx';
+import BoopMascot from '../components/BoopMascot.tsx';
 import StarMap from '../components/StarMap.astro';
 import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui';
 ---
@@ -26,6 +27,10 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
         <Badge tone="violet">astro + retropolis</Badge>
       </div>
     </header>
+
+    <div class="cluster" style="justify-content: center;">
+      <BoopMascot client:visible />
+    </div>
 
     <Window title="navigation.chart" icon="star" status="Pick a star to set course.">
       <StarMap />
@@ -59,10 +64,17 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
       </Card>
       <Card title="Arcade" icon="rocket" tone="sunshine">
         <p style="margin: 0 0 12px;">
-          Pilot the pugglenaut through an asteroid field in <em>Puggle Drift</em>
-          — one-button, high-score chasing.
+          Two tiny games: dodge asteroids in <em>Puggle Drift</em>, or grow a
+          comet in <em>Comet Snake</em>. High-score chasing, one puggle.
         </p>
-        <HyperLink href="/game">Play the game →</HyperLink>
+        <HyperLink href="/game">Enter the arcade →</HyperLink>
+      </Card>
+      <Card title="Oracle" icon="sparkle" tone="sunshine">
+        <p style="margin: 0 0 12px;">
+          Ask the cosmos a yes/no question and let a very small platypus divine
+          your fate.
+        </p>
+        <HyperLink href="/oracle">Consult the cosmos →</HyperLink>
       </Card>
       <Card title="Guestbook" icon="chat" tone="magenta">
         <p style="margin: 0 0 12px;">

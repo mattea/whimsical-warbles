@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, HyperLink } from '@retropolis/ui';
+import Oracle from '../components/Oracle.tsx';
+
+// Ask the Cosmos: a whimsical, backend-free cosmic magic-8-ball. Tap the orb,
+// ask a yes/no question, and let the stars (and the puggle) weigh in.
+---
+
+<Base
+  title="Ask the Cosmos · Pugglenaut"
+  description="A cosmic magic-8-ball. Ask a yes/no question and let the stars — and the pugglenaut — weigh in."
+>
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Ask the Cosmos</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A cosmic magic-8-ball. Whisper a yes/no question to the orb, consult the
+        stars, and see what the pugglenaut divines from the void.
+      </p>
+    </header>
+
+    <Window title="oracle.exe" icon="star">
+      <Oracle client:visible />
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

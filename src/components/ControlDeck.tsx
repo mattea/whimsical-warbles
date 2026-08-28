@@ -21,6 +21,7 @@ import {
  *   ▸ boot sequence (power)     — plays a skippable POST screen
  *   ▸ time-aware sky (clock)    — tints the page to the local hour
  *   ▸ bubble trail (sparkle)    — bubbles follow the cursor
+ *   ▸ screensaver (cloud)       — After Dark-style idle screensaver (opt-in)
  *   ▸ mission control (console) — a keyboard command center
  * Persisted toggles (sky, bubbles) are restored on mount. The Konami code is
  * always listening but only ever fires on the exact sequence.
@@ -28,6 +29,7 @@ import {
 export default function ControlDeck() {
   const [skyOn, setSkyOn] = useState(false);
   const [bubblesOn, setBubblesOn] = useState(false);
+  const [screensaverOn, setScreensaverOn] = useState(false);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -41,6 +43,12 @@ export default function ControlDeck() {
     if (isBubblesOn() && !prefersReducedMotion()) {
       setBubbles(true);
       setBubblesOn(true);
+    }
+    // Reflect the screensaver flag (the Screensaver island reads it itself).
+    try {
+      if (localStorage.getItem('pugglenaut-screensaver') === 'on') setScreensaverOn(true);
+    } catch {
+      /* storage may be unavailable */
     }
 
     const cleanupKonami = initKonami(() => {
@@ -90,6 +98,20 @@ export default function ControlDeck() {
     runBootSequence();
   }
 
+  function toggleScreensaver() {
+    const next = !screensaverOn;
+    try {
+      localStorage.setItem('pugglenaut-screensaver', next ? 'on' : 'off');
+    } catch {
+      /* storage may be unavailable */
+    }
+    window.dispatchEvent(new CustomEvent('pugglenaut:screensaver', { detail: { on: next } }));
+    setScreensaverOn(next);
+    if (next && prefersReducedMotion()) {
+      flash('Screensaver is on, but it stays put while reduced-motion is enabled.');
+    }
+  }
+
   return (
     <div className="control-deck cluster" style={{ gap: 8 }}>
       <ThemeToggle />
@@ -116,6 +138,16 @@ export default function ControlDeck() {
             variant={bubblesOn ? 'primary' : 'secondary'}
             aria-pressed={bubblesOn}
             onClick={toggleBubbles}
+          />
+        </Tooltip>
+        <Tooltip content="Screensaver" side="bottom">
+          <IconButton
+            icon="cloud"
+            label="Toggle screensaver"
+            size="sm"
+            variant={screensaverOn ? 'primary' : 'secondary'}
+            aria-pressed={screensaverOn}
+            onClick={toggleScreensaver}
           />
         </Tooltip>
         <Tooltip content="Mission control (`)" side="bottom">

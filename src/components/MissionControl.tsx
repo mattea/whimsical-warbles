@@ -32,6 +32,14 @@ const ROUTES: Record<string, string> = {
   now: '/now',
   colophon: '/colophon',
   ship: '/colophon',
+  game: '/game',
+  arcade: '/game',
+  drift: '/game',
+  snake: '/game/snake',
+  oracle: '/oracle',
+  fortune: '/oracle',
+  guestbook: '/guestbook',
+  contact: '/contact',
 };
 
 interface Props {
@@ -85,9 +93,10 @@ export default function MissionControl({ open, onClose }: Props) {
     switch (cmd) {
       case 'help':
         print(
-          { kind: 'out', text: 'navigation : home · logbook · links · now · colophon' },
+          { kind: 'out', text: 'navigation : home · logbook · guestbook · links · now · colophon' },
+          { kind: 'out', text: 'arcade     : arcade · drift · snake · oracle · contact' },
           { kind: 'out', text: 'theme      : theme paper | crt | sketch' },
-          { kind: 'out', text: 'effects    : boot · sky on|off · bubbles on|off · roll' },
+          { kind: 'out', text: 'effects    : boot · sky on|off · bubbles on|off · screensaver on|off · roll' },
           { kind: 'out', text: 'misc       : whoami · clear · close' },
         );
         break;
@@ -135,6 +144,21 @@ export default function MissionControl({ open, onClose }: Props) {
         } else {
           setBubbles(arg === 'on');
           print({ kind: 'out', text: `bubble trail ${arg}.` });
+        }
+        break;
+      }
+      case 'screensaver': {
+        if (arg !== 'on' && arg !== 'off') {
+          print({ kind: 'err', text: 'usage: screensaver on | off' });
+        } else {
+          const on = arg === 'on';
+          try {
+            localStorage.setItem('pugglenaut-screensaver', on ? 'on' : 'off');
+          } catch {
+            /* storage may be unavailable */
+          }
+          window.dispatchEvent(new CustomEvent('pugglenaut:screensaver', { detail: { on } }));
+          print({ kind: 'out', text: `screensaver ${arg}. ${on ? '(idles in after ~45s)' : ''}`.trim() });
         }
         break;
       }

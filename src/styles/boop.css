@@ -1,0 +1,197 @@
+/* BoopMascot — the "boop the puggle" toy.
+   Class-prefixed `pg-boop-`; themed entirely through --rp-* tokens so it reads
+   correctly in Paper, CRT and Sketch. Big, bouncy motion (squish, wobble,
+   floating particles) is confined to keyframes that are neutralised under
+   prefers-reduced-motion, leaving only a tiny, non-bouncy scale reaction. */
+
+.pg-boop {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rp-space-xs, 8px);
+  user-select: none;
+}
+
+/* The mascot is a real, focusable button — strip chrome, keep it tappable. */
+.pg-boop-btn {
+  appearance: none;
+  border: none;
+  margin: 0;
+  padding: var(--rp-space-2xs, 4px);
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--rp-radius-pill, 999px);
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: filter var(--rp-dur-fast, 120ms) var(--rp-ease-pop, ease);
+}
+
+.pg-boop-btn:hover {
+  filter: brightness(1.04);
+}
+
+.pg-boop-btn:focus-visible {
+  outline: 3px solid var(--rp-accent, var(--rp-violet-500, #7b2ff7));
+  outline-offset: 3px;
+}
+
+/* Stage: fixed box that anchors the figure and the floating particles. */
+.pg-boop-stage {
+  position: relative;
+  display: inline-block;
+  width: 140px;
+  height: 140px;
+}
+
+.pg-boop-figure {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 66px 116px; /* bottom-center of the body for the squish */
+  filter: drop-shadow(0 4px 0 color-mix(in srgb, var(--rp-ink, #1c1030) 22%, transparent));
+}
+
+/* The figure is remounted (React key) on every boop, so this one-shot
+   squish + wobble replays each time. */
+.pg-boop-figure {
+  animation: pg-boop-squish var(--pg-squish-dur, 460ms) var(--rp-ease-pop, cubic-bezier(0.34, 1.56, 0.64, 1)) 1;
+}
+
+@keyframes pg-boop-squish {
+  0% {
+    transform: scale(1, 1) rotate(0deg);
+  }
+  22% {
+    transform: scale(1.12, 0.82) rotate(-4deg);
+  }
+  45% {
+    transform: scale(0.94, 1.08) rotate(3deg);
+  }
+  68% {
+    transform: scale(1.04, 0.97) rotate(-1.5deg);
+  }
+  100% {
+    transform: scale(1, 1) rotate(0deg);
+  }
+}
+
+/* Idle button-press feedback that co-exists with the SVG squish. */
+.pg-boop-btn.is-booped {
+  animation: pg-boop-nudge var(--pg-squish-dur, 460ms) var(--rp-ease-pop, ease) 1;
+}
+
+@keyframes pg-boop-nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(3px);
+  }
+}
+
+/* ---- Floating particles ------------------------------------------------- */
+
+.pg-boop-pop,
+.pg-boop-sparkle {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* The little "boop!" label floats up and fades. */
+.pg-boop-pop {
+  transform: translate(-50%, 0);
+  font-family: var(--rp-font-pixel, var(--rp-font-display, var(--rp-font-mono, monospace)));
+  font-size: 15px;
+  font-weight: var(--rp-weight-bold, 700);
+  letter-spacing: 0.02em;
+  color: var(--rp-accent, var(--rp-magenta, #d6249f));
+  text-shadow: 0 1px 0 var(--rp-surface, #fff);
+  white-space: nowrap;
+  animation: pg-boop-float var(--pg-particle-dur, 900ms) var(--rp-ease-pop, ease-out) 1 forwards;
+}
+
+.pg-boop-sparkle {
+  color: var(--rp-sunshine, var(--rp-tangerine, #ffcf33));
+  font-size: 16px;
+  text-shadow: 0 0 4px color-mix(in srgb, var(--rp-sunshine, #ffcf33) 60%, transparent);
+  animation: pg-boop-spark var(--pg-particle-dur, 900ms) var(--rp-ease-pop, ease-out) 1 forwards;
+}
+
+@keyframes pg-boop-float {
+  0% {
+    transform: translate(calc(-50% + var(--pg-x, 0px)), 4px) scale(0.6);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--pg-x, 0px)), -44px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+@keyframes pg-boop-spark {
+  0% {
+    transform: translate(calc(-50% + var(--pg-x, 0px)), 8px) rotate(var(--pg-rot, 0deg))
+      scale(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--pg-x, 0px)), -34px)
+      rotate(calc(var(--pg-rot, 0deg) + 90deg)) scale(var(--pg-scale, 1));
+    opacity: 0;
+  }
+}
+
+/* ---- Caption ------------------------------------------------------------ */
+
+.pg-boop-caption {
+  margin: 0;
+  min-height: 1.2em;
+  font-family: var(--rp-font-pixel, var(--rp-font-mono, monospace));
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--rp-text-muted, var(--rp-text, currentColor));
+}
+
+/* ---- Reduced motion: tiny, non-bouncy reaction only --------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-boop-figure {
+    animation: pg-boop-gentle var(--pg-squish-dur, 460ms) ease 1;
+    transform: none;
+  }
+  .pg-boop-btn.is-booped {
+    animation: none;
+  }
+  /* Particles are not rendered under reduced motion (the component skips
+     spawning them), but neutralise any keyframes defensively. */
+  .pg-boop-pop,
+  .pg-boop-sparkle {
+    animation: none;
+    opacity: 0;
+  }
+
+  @keyframes pg-boop-gentle {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
