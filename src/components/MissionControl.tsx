@@ -38,6 +38,8 @@ const ROUTES: Record<string, string> = {
   snake: '/game/snake',
   oracle: '/oracle',
   fortune: '/oracle',
+  doodle: '/doodle',
+  paint: '/doodle',
   guestbook: '/guestbook',
   contact: '/contact',
 };
@@ -94,9 +96,10 @@ export default function MissionControl({ open, onClose }: Props) {
       case 'help':
         print(
           { kind: 'out', text: 'navigation : home · logbook · guestbook · links · now · colophon' },
-          { kind: 'out', text: 'arcade     : arcade · drift · snake · oracle · contact' },
+          { kind: 'out', text: 'toys       : arcade · drift · snake · oracle · doodle · contact' },
           { kind: 'out', text: 'theme      : theme paper | crt | sketch' },
-          { kind: 'out', text: 'effects    : boot · sky on|off · bubbles on|off · screensaver on|off · roll' },
+          { kind: 'out', text: 'effects    : boot · sky on|off · bubbles on|off · screensaver on|off' },
+          { kind: 'out', text: 'effects    : companion on|off · roll' },
           { kind: 'out', text: 'misc       : whoami · clear · close' },
         );
         break;
@@ -159,6 +162,21 @@ export default function MissionControl({ open, onClose }: Props) {
           }
           window.dispatchEvent(new CustomEvent('pugglenaut:screensaver', { detail: { on } }));
           print({ kind: 'out', text: `screensaver ${arg}. ${on ? '(idles in after ~45s)' : ''}`.trim() });
+        }
+        break;
+      }
+      case 'companion': {
+        if (arg !== 'on' && arg !== 'off') {
+          print({ kind: 'err', text: 'usage: companion on | off' });
+        } else {
+          const on = arg === 'on';
+          try {
+            localStorage.setItem('pugglenaut-companion', on ? 'on' : 'off');
+          } catch {
+            /* storage may be unavailable */
+          }
+          window.dispatchEvent(new CustomEvent('pugglenaut:companion', { detail: { on } }));
+          print({ kind: 'out', text: `cursor companion ${arg}. ${on ? '(needs a mouse)' : ''}`.trim() });
         }
         break;
       }

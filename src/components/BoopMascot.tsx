@@ -238,18 +238,20 @@ export default function BoopMascot() {
             {/* eye peeking inside the helmet */}
             <circle cx="84" cy="64" r="6.2" fill="#20202a" />
             <circle cx="82.2" cy="61.8" r="1.7" fill="#f7f4ea" />
-            {/* astronaut helmet — translucent white bubble */}
+            {/* astronaut helmet — translucent white bubble. Centered over the
+                face (shifted right + slightly down and enlarged) so the duck
+                bill sits inside the visor rather than poking through it. */}
             <circle
-              cx="74"
-              cy="62"
-              r="50"
+              cx="82"
+              cy="65"
+              r="53"
               fill="rgba(255,255,255,0.16)"
               stroke="rgba(255,255,255,0.85)"
               strokeWidth="2.6"
             />
             {/* helmet highlight glint (top-left) */}
             <path
-              d="M40 54 A40 40 0 0 1 62 26"
+              d="M49 56 A42 42 0 0 1 72 27"
               fill="none"
               stroke="rgba(255,255,255,0.9)"
               strokeWidth="2.4"

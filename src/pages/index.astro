@@ -4,6 +4,7 @@ import LaunchControl from '../components/LaunchControl.tsx';
 import PuggleTelemetry from '../components/PuggleTelemetry.tsx';
 import VisitorCounter from '../components/VisitorCounter.tsx';
 import BoopMascot from '../components/BoopMascot.tsx';
+import CosmicRadio from '../components/CosmicRadio.tsx';
 import StarMap from '../components/StarMap.astro';
 import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui';
 ---
@@ -52,6 +53,10 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
       </Window>
     </div>
 
+    <Window title="cosmic-radio.fm" icon="music" status="Synthesized live — no audio files.">
+      <CosmicRadio client:visible />
+    </Window>
+
     <Divider variant="rainbow" label="the neighborhood" />
 
     <section class="card-grid">
@@ -75,6 +80,13 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
           your fate.
         </p>
         <HyperLink href="/oracle">Consult the cosmos →</HyperLink>
+      </Card>
+      <Card title="Etch-a-Comet" icon="pencil" tone="teal">
+        <p style="margin: 0 0 12px;">
+          A little pixel paint pad. Doodle a comet, save it locally, and beam a
+          PNG down to your machine.
+        </p>
+        <HyperLink href="/doodle">Open the doodle pad →</HyperLink>
       </Card>
       <Card title="Guestbook" icon="chat" tone="magenta">
         <p style="margin: 0 0 12px;">

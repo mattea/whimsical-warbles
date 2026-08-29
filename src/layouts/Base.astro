@@ -5,6 +5,7 @@ import SiteNav from '../components/SiteNav.astro';
 import ControlDeck from '../components/ControlDeck.tsx';
 import StatusBeacon from '../components/StatusBeacon.tsx';
 import Screensaver from '../components/Screensaver.tsx';
+import CursorCompanion from '../components/CursorCompanion.tsx';
 
 interface Props {
   title?: string;
@@ -88,6 +89,10 @@ const year = new Date().getFullYear();
          control deck or the `screensaver` console command). Renders nothing
          until it idles in. -->
     <Screensaver client:idle />
+
+    <!-- Opt-in cursor companion (off by default; toggled from the control deck
+         or the `companion` console command). Fine-pointer devices only. -->
+    <CursorCompanion client:idle />
 
     <footer class="site-foot">
       <span>Made on the small web · {year}</span>
