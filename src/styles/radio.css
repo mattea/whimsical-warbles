@@ -1,0 +1,224 @@
+/* ==========================================================================
+   Cosmic Radio — styles for the <CosmicRadio /> island.
+
+   A little retro receiver: beveled chassis, a glowing "display" that holds the
+   visualizer + now-playing readout, chunky transport buttons and a volume
+   slider. Everything is scoped under `.pg-radio-*` and leans entirely on the
+   Retropolis `--rp-*` custom properties, so the whole radio recolors itself
+   across the Paper / CRT / Sketch themes with no per-theme overrides.
+
+   The visualizer bars animate on a CSS keyframe as a gentle idle shimmer; the
+   heights are driven from JS (rAF) while playing. Under prefers-reduced-motion
+   the shimmer is removed and the bars sit still.
+   ========================================================================== */
+
+.pg-radio {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  font-family: var(--rp-font-body, system-ui, sans-serif);
+  color: var(--rp-text);
+}
+
+/* --- Chassis ------------------------------------------------------------- */
+
+.pg-radio-chassis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rp-space-sm, 10px);
+  padding: var(--rp-space-md, 14px);
+  background: var(--rp-surface-chrome, var(--rp-surface));
+  border: var(--rp-outline, 2px solid var(--rp-border));
+  border-radius: var(--rp-radius-md, 10px);
+  box-shadow: var(--rp-shadow-hard, 4px 4px 0 var(--rp-border));
+}
+
+.pg-radio-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pg-radio-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--rp-font-display, var(--rp-font-body));
+  font-weight: var(--rp-weight-bold, 700);
+  font-size: var(--rp-text-sm, 0.85rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rp-text);
+}
+
+/* Power LED — glows when playing. */
+.pg-radio-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--rp-border);
+  background: var(--rp-surface-alt, var(--rp-surface));
+  transition: background var(--rp-dur-fast, 120ms) ease,
+    box-shadow var(--rp-dur-fast, 120ms) ease;
+}
+
+.pg-radio-led.is-on {
+  background: var(--rp-lime, var(--rp-teal));
+  box-shadow: 0 0 6px 1px var(--rp-lime, var(--rp-teal));
+}
+
+/* --- Display panel ------------------------------------------------------- */
+
+.pg-radio-display {
+  --pg-radio-tint: var(--rp-teal);
+  display: flex;
+  align-items: stretch;
+  gap: var(--rp-space-sm, 10px);
+  min-height: 84px;
+  padding: var(--rp-space-sm, 10px);
+  background: var(--rp-ink, #101018);
+  color: var(--rp-text-invert, #fff);
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 6px);
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+/* Visualizer bars */
+.pg-radio-visualizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 74px;
+  height: auto;
+  flex: 0 0 auto;
+}
+
+.pg-radio-bar {
+  flex: 1 1 0;
+  min-width: 4px;
+  height: 15%;
+  align-self: flex-end;
+  background: var(--pg-radio-tint);
+  border-radius: 2px 2px 0 0;
+  transition: height 90ms linear;
+  transform-origin: bottom;
+  animation: pg-radio-idle 1.6s ease-in-out infinite;
+}
+
+.pg-radio-bar:nth-child(2) { animation-delay: 0.12s; }
+.pg-radio-bar:nth-child(3) { animation-delay: 0.24s; }
+.pg-radio-bar:nth-child(4) { animation-delay: 0.36s; }
+.pg-radio-bar:nth-child(5) { animation-delay: 0.48s; }
+.pg-radio-bar:nth-child(6) { animation-delay: 0.6s; }
+.pg-radio-bar:nth-child(7) { animation-delay: 0.72s; }
+
+@keyframes pg-radio-idle {
+  0%, 100% { transform: scaleY(0.7); opacity: 0.75; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+/* Now-playing readout */
+.pg-radio-nowplaying {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pg-radio-label {
+  font-family: var(--rp-font-mono, monospace);
+  font-size: var(--rp-text-2xs, 0.65rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pg-radio-tint);
+}
+
+.pg-radio-station {
+  font-family: var(--rp-font-display, var(--rp-font-body));
+  font-weight: var(--rp-weight-bold, 700);
+  font-size: var(--rp-text-lg, 1.1rem);
+  line-height: 1.1;
+  color: var(--rp-text-invert, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pg-radio-blurb {
+  font-size: var(--rp-text-2xs, 0.68rem);
+  line-height: 1.25;
+  color: color-mix(in srgb, var(--rp-text-invert, #fff) 72%, transparent);
+}
+
+/* --- Transport ----------------------------------------------------------- */
+
+.pg-radio-transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rp-space-sm, 10px);
+}
+
+/* Flip the "play" glyph to fake a rewind arrow for Previous. */
+.pg-radio-flip {
+  transform: scaleX(-1);
+}
+
+/* --- Volume -------------------------------------------------------------- */
+
+.pg-radio-volume {
+  display: flex;
+  align-items: center;
+  gap: var(--rp-space-xs, 8px);
+  padding: 2px var(--rp-space-2xs, 4px);
+}
+
+.pg-radio-slider {
+  flex: 1 1 auto;
+  height: 22px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--rp-accent, var(--rp-violet-500));
+  background: transparent;
+}
+
+.pg-radio-slider:focus-visible {
+  outline: 3px dashed var(--rp-accent, var(--rp-violet-500));
+  outline-offset: 3px;
+  border-radius: var(--rp-radius-sm, 6px);
+}
+
+.pg-radio-vol-num {
+  min-width: 2.2ch;
+  text-align: right;
+  font-family: var(--rp-font-mono, monospace);
+  font-size: var(--rp-text-xs, 0.75rem);
+  color: var(--rp-text-muted, var(--rp-text));
+}
+
+/* --- Station chips ------------------------------------------------------- */
+
+.pg-radio-stations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2xs, 6px);
+  justify-content: center;
+}
+
+/* --- Reduced motion: freeze the shimmer --------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-radio-bar {
+    animation: none;
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+  .pg-radio-led {
+    transition: none;
+  }
+}

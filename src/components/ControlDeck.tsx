@@ -30,6 +30,7 @@ export default function ControlDeck() {
   const [skyOn, setSkyOn] = useState(false);
   const [bubblesOn, setBubblesOn] = useState(false);
   const [screensaverOn, setScreensaverOn] = useState(false);
+  const [companionOn, setCompanionOn] = useState(false);
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -44,9 +45,10 @@ export default function ControlDeck() {
       setBubbles(true);
       setBubblesOn(true);
     }
-    // Reflect the screensaver flag (the Screensaver island reads it itself).
+    // Reflect the screensaver + companion flags (each island reads its own).
     try {
       if (localStorage.getItem('pugglenaut-screensaver') === 'on') setScreensaverOn(true);
+      if (localStorage.getItem('pugglenaut-companion') === 'on') setCompanionOn(true);
     } catch {
       /* storage may be unavailable */
     }
@@ -112,6 +114,20 @@ export default function ControlDeck() {
     }
   }
 
+  function toggleCompanion() {
+    const next = !companionOn;
+    try {
+      localStorage.setItem('pugglenaut-companion', next ? 'on' : 'off');
+    } catch {
+      /* storage may be unavailable */
+    }
+    window.dispatchEvent(new CustomEvent('pugglenaut:companion', { detail: { on: next } }));
+    setCompanionOn(next);
+    if (next && (prefersReducedMotion() || !window.matchMedia('(pointer: fine)').matches)) {
+      flash('The companion needs a mouse and motion — it stays hidden here.');
+    }
+  }
+
   return (
     <div className="control-deck cluster" style={{ gap: 8 }}>
       <ThemeToggle />
@@ -148,6 +164,16 @@ export default function ControlDeck() {
             variant={screensaverOn ? 'primary' : 'secondary'}
             aria-pressed={screensaverOn}
             onClick={toggleScreensaver}
+          />
+        </Tooltip>
+        <Tooltip content="Cursor companion" side="bottom">
+          <IconButton
+            icon="heart"
+            label="Toggle cursor companion"
+            size="sm"
+            variant={companionOn ? 'primary' : 'secondary'}
+            aria-pressed={companionOn}
+            onClick={toggleCompanion}
           />
         </Tooltip>
         <Tooltip content="Mission control (`)" side="bottom">

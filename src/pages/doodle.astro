@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, HyperLink } from '@retropolis/ui';
+import DoodlePad from '../components/DoodlePad.tsx';
+
+// Etch-a-Comet — a chunky retro pixel doodle pad, MS-Paint by way of a
+// space-station porthole. The pad is a self-contained React island.
+---
+
+<Base
+  title="Etch-a-Comet · Pugglenaut"
+  description="A retro pixel doodle pad — draw chunky space art with the pugglenaut, save it, and download a PNG."
+>
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Etch-a-Comet</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A chunky pixel paint pad for doodling comets, stars and stray puggles.
+        Pick a color, scribble, and download your masterpiece.
+      </p>
+    </header>
+
+    <Window title="etch-a-comet.exe" icon="pencil">
+      <DoodlePad client:load />
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

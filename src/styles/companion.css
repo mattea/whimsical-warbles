@@ -1,0 +1,101 @@
+/* CursorCompanion — the opt-in tiny pugglenaut that follows the cursor.
+
+   Class-prefixed `pg-comp-`. The follow motion is entirely JS-driven (the
+   sprite's `transform` is written every frame in CursorCompanion.tsx), so this
+   stylesheet only provides:
+     • the fixed, click-through overlay + sprite frame,
+     • a gentle drop-shadow + hint of squish on the sprite,
+     • the fading sparkle-trail animation.
+
+   All motion is confined to keyframes that are neutralised under
+   prefers-reduced-motion (and the component itself refuses to activate there,
+   so this is belt-and-braces). Colors that touch chrome use --rp-* tokens; the
+   sprite mirrors the favicon's own fixed palette so it reads on any theme. */
+
+/* Full-viewport, click-through layer that hosts the sprite + trail. */
+.pg-comp-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000; /* above site chrome, below nothing that matters */
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* The sprite itself. It is anchored at the top-left (0,0) and moved with a
+   translate3d in JS; the extra translate(-50%,-50%) centers it on the cursor.
+   We keep width/height in sync with the inline SVG (~40px). */
+.pg-comp-sprite {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  will-change: transform;
+  filter: drop-shadow(
+    0 3px 2px color-mix(in srgb, var(--rp-ink, #1c1030) 30%, transparent)
+  );
+  /* A soft, continuous breath so the companion feels alive even mid-glide.
+     The JS transform sets translate/rotate on the element; this animates the
+     inner SVG's scale so the two never fight. */
+}
+
+.pg-comp-sprite svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: pg-comp-breathe 2600ms ease-in-out infinite;
+  transform-origin: 50% 64%;
+}
+
+@keyframes pg-comp-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ---- Sparkle trail ------------------------------------------------------- */
+
+.pg-comp-sparkle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--rp-sunshine, var(--rp-tangerine, #ffcf33));
+  text-shadow: 0 0 5px color-mix(in srgb, var(--rp-sunshine, #ffcf33) 60%, transparent);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: pg-comp-spark 720ms ease-out forwards;
+}
+
+@keyframes pg-comp-spark {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.1) rotate(80deg);
+  }
+}
+
+/* ---- Reduced motion: the companion should not be animating at all. -------
+   The component refuses to activate under reduced-motion, so nothing renders;
+   these rules defensively neutralise any motion if it somehow mounts. */
+@media (prefers-reduced-motion: reduce) {
+  .pg-comp-sprite svg {
+    animation: none;
+  }
+  .pg-comp-sparkle {
+    animation: none;
+    opacity: 0;
+  }
+}

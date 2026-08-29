@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Etch-a-Comet — styles for the <DoodlePad /> island.
+
+   A retro MS-Paint-style pixel pad. Everything is scoped under `.pg-doodle-*`
+   so nothing leaks into the rest of the site. The CHROME (toolbar, frame,
+   swatch cells, buttons) leans on the Retropolis `--rp-*` custom properties so
+   it recolors automatically across the Paper / CRT / Sketch themes. The drawing
+   surface itself keeps a fixed paper color (set on the <canvas>) so the art
+   looks the same no matter which theme the shell is wearing.
+   ========================================================================== */
+
+.pg-doodle-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* -------- Toolbar -------------------------------------------------------- */
+
+.pg-doodle-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 10px 12px;
+  background: var(--rp-surface-chrome, var(--rp-surface-alt));
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-md, 7px);
+  box-shadow: inset 1px 1px 0 var(--rp-bevel-hi, rgba(255, 255, 255, 0.6)),
+    inset -1px -1px 0 var(--rp-bevel-lo, rgba(0, 0, 0, 0.25));
+}
+
+.pg-doodle-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-doodle-group + .pg-doodle-group {
+  padding-left: 16px;
+  border-left: 2px dotted var(--rp-border);
+}
+
+.pg-doodle-label {
+  font-family: var(--rp-font-pixel, var(--rp-font-mono, monospace));
+  font-size: var(--rp-text-2xs, 0.7rem);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rp-text-muted);
+  user-select: none;
+}
+
+/* -------- Color swatches ------------------------------------------------- */
+
+.pg-doodle-swatches {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  gap: 5px;
+}
+
+.pg-doodle-swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  cursor: pointer;
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 4px);
+  box-shadow: 1px 1px 0 var(--rp-shadow, rgba(0, 0, 0, 0.3));
+  transition: transform var(--rp-dur-fast, 90ms) var(--rp-ease-pop, ease);
+}
+
+.pg-doodle-swatch:hover {
+  transform: translate(-1px, -1px);
+}
+
+.pg-doodle-swatch:focus-visible {
+  outline: 3px solid var(--rp-accent, var(--rp-violet-500));
+  outline-offset: 2px;
+}
+
+/* The active color reads as "pressed" — pushed in, ringed, and check-marked. */
+.pg-doodle-swatch[aria-pressed='true'] {
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 2px var(--rp-surface-chrome, var(--rp-surface-alt)),
+    0 0 0 4px var(--rp-accent, var(--rp-violet-500));
+}
+
+/* -------- Canvas frame --------------------------------------------------- */
+
+.pg-doodle-stage {
+  position: relative;
+  width: 100%;
+  border: 3px solid var(--rp-border);
+  border-radius: var(--rp-radius-md, 7px);
+  box-shadow: var(--rp-shadow-hard, 4px 4px 0 rgba(0, 0, 0, 0.35));
+  /* A chunky beveled "monitor" bezel around the drawing surface. */
+  padding: 8px;
+  background: var(--rp-surface-chrome, var(--rp-surface-alt));
+  overflow: hidden;
+}
+
+.pg-doodle-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  /* Fixed paper color so art is theme-independent. */
+  background: #fdf6e3;
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 4px);
+  /* Crisp, chunky pixels — never smoothed. */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  /* Don't let the browser scroll / zoom the page while drawing on the pad. */
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.pg-doodle-canvas.is-eraser {
+  cursor: cell;
+}
+
+/* -------- Footer note ---------------------------------------------------- */
+
+.pg-doodle-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--rp-text-xs, 0.78rem);
+  color: var(--rp-text-muted);
+}
+
+.pg-doodle-note code {
+  font-family: var(--rp-font-mono, monospace);
+  padding: 1px 5px;
+  border-radius: var(--rp-radius-sm, 4px);
+  background: var(--rp-surface-alt);
+  border: 1px solid var(--rp-border);
+}
+
+/* Anchor styled to sit in line with the Retropolis buttons in the toolbar. */
+.pg-doodle-download {
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  .pg-doodle-group + .pg-doodle-group {
+    padding-left: 0;
+    border-left: none;
+  }
+}
