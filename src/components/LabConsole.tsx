@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '../styles/lab.css';
-import clipsJson from '../../public/duck/clips.json';
 import treeJson from '../../public/duck/tree.json';
 import { decodeClips } from '../lib/duck/clips';
 import { createClipLink } from '../lib/duck/clipLink';
-import type { DuckState, Skill } from '../lib/duck/link';
+import type { DuckLink, DuckState, Skill } from '../lib/duck/link';
 import { loadTree } from '../lib/duck/tree';
 import LabScene from './LabScene';
 
@@ -40,11 +39,18 @@ const DRIVE_VX = 0.3;
 const DRIVE_VY = 0.1;
 const DRIVE_VYAW = 1.0;
 
-export default function LabConsole() {
-  const tree = useMemo(() => loadTree(treeJson), []);
-  const clips = useMemo(() => decodeClips(clipsJson), []);
-  const link = useMemo(() => createClipLink(tree, clips), [tree, clips]);
+/** Where the baked clips live, honouring Astro's configured base path. */
+const CLIPS_URL = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/duck/clips.json`;
 
+export default function LabConsole() {
+  // The tree is 4 KB and the rig needs it up front, so it rides in the bundle.
+  // The clips are 140 KB and are fetched on power-up instead -- inlining them
+  // would ship them to every visitor who merely scrolled past.
+  const tree = useMemo(() => loadTree(treeJson), []);
+
+  const [link, setLink] = useState<DuckLink | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [fps, setFps] = useState(0);
@@ -59,9 +65,31 @@ export default function LabConsole() {
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  /** Fetch and decode the clips, then build the link. Idempotent. */
+  const powerUp = useCallback(async () => {
+    if (link) {
+      setRunning(true);
+      return;
+    }
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await fetch(CLIPS_URL);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      const built = createClipLink(tree, decodeClips(await res.json()));
+      setLink(built);
+      setRunning(true);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'could not load the motion data');
+    } finally {
+      setLoading(false);
+    }
+  }, [link, tree]);
+
   // Sample state for the readout at a human rate rather than re-rendering at
   // 50 Hz. The link mutates its arrays in place, so copy before storing.
   useEffect(() => {
+    if (!link) return;
     let latest: DuckState | null = null;
     const off = link.subscribe((s) => {
       latest = s;
@@ -82,9 +110,10 @@ export default function LabConsole() {
     };
   }, [link]);
 
-  useEffect(() => () => link.dispose(), [link]);
+  useEffect(() => () => link?.dispose(), [link]);
 
   const pushCommand = useCallback(() => {
+    if (!link) return;
     const keys = held.current;
     const vx = (keys.has('w') ? DRIVE_VX : 0) + (keys.has('s') ? -DRIVE_VX / 2 : 0);
     const vy = (keys.has('a') ? DRIVE_VY : 0) + (keys.has('d') ? -DRIVE_VY : 0);
@@ -94,7 +123,9 @@ export default function LabConsole() {
   }, [link]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || !link) return;
+    // Bound locally so the nested handlers capture a non-null link.
+    const duck = link;
 
     const skillFor = (k: string) => SKILLS.find((s) => s.key.toLowerCase() === k)?.id;
 
@@ -110,25 +141,25 @@ export default function LabConsole() {
       const skill = skillFor(k);
       if (skill) {
         e.preventDefault();
-        link.do(skill);
+        duck.do(skill);
         return;
       }
       if (k === ' ') {
         e.preventDefault();
-        link.mouth(1);
+        duck.mouth(1);
       }
     }
 
     function up(e: KeyboardEvent) {
       const k = e.key.toLowerCase();
       if (held.current.delete(k)) pushCommand();
-      if (k === ' ') link.mouth(0);
+      if (k === ' ') duck.mouth(0);
     }
 
     // Releasing focus should not leave the pugglenaut driving into the wall.
     function blur() {
       held.current.clear();
-      link.stop();
+      duck.stop();
     }
 
     window.addEventListener('keydown', down);
@@ -139,13 +170,14 @@ export default function LabConsole() {
       window.removeEventListener('keyup', up);
       window.removeEventListener('blur', blur);
       held.current.clear();
-      link.stop();
+      duck.stop();
     };
   }, [running, link, pushCommand]);
 
   // Real gamepads, mapped the way the robot maps them.
   useEffect(() => {
-    if (!running) return;
+    if (!running || !link) return;
+    const duck = link;
     let raf = 0;
     const pressed = new Set<number>();
 
@@ -155,7 +187,7 @@ export default function LabConsole() {
       if (!pad) return;
 
       const dead = (v: number) => (Math.abs(v) < 0.15 ? 0 : v);
-      link.move({
+      duck.move({
         vx: -dead(pad.axes[1] ?? 0) * DRIVE_VX,
         vy: -dead(pad.axes[0] ?? 0) * DRIVE_VY,
         vyaw: -dead(pad.axes[2] ?? 0) * DRIVE_VYAW,
@@ -172,7 +204,7 @@ export default function LabConsole() {
         if (pad.buttons[button]?.pressed) {
           if (!pressed.has(button)) {
             pressed.add(button);
-            link.do(skill);
+            duck.do(skill);
           }
         } else {
           pressed.delete(button);
@@ -188,7 +220,7 @@ export default function LabConsole() {
   return (
     <div className="lab">
       <div className="lab-stage">
-        {running ? (
+        {running && link ? (
           <LabScene
             link={link}
             tree={tree}
@@ -200,8 +232,11 @@ export default function LabConsole() {
           <div className="lab-poster">
             <p className="lab-poster-title">Waddle Lab</p>
             <p className="lab-poster-sub">
-              A pugglenaut walking on a real robot&rsquo;s gait. Nothing runs until you
-              say so.
+              {loadError
+                ? `The motion data would not load (${loadError}).`
+                : loading
+                  ? 'Loading the gait\u2026'
+                  : 'A pugglenaut walking on a real robot\u2019s gait. Nothing runs until you say so.'}
             </p>
           </div>
         )}
@@ -217,9 +252,17 @@ export default function LabConsole() {
           type="button"
           className="lab-power"
           aria-pressed={running}
-          onClick={() => setRunning((r) => !r)}
+          disabled={loading}
+          onClick={() => {
+            if (running) {
+              link?.stop();
+              setRunning(false);
+            } else {
+              void powerUp();
+            }
+          }}
         >
-          {running ? '■ Power down' : '▶ Power up'}
+          {running ? '■ Power down' : loading ? '… Loading' : '▶ Power up'}
         </button>
 
         {SKILLS.map((s) => (
@@ -227,8 +270,8 @@ export default function LabConsole() {
             key={s.id}
             type="button"
             className="lab-skill"
-            disabled={!running}
-            onClick={() => link.do(s.id)}
+            disabled={!running || !link}
+            onClick={() => link?.do(s.id)}
           >
             {s.label} <kbd>{s.key}</kbd>
           </button>
