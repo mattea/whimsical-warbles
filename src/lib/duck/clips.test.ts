@@ -1,0 +1,131 @@
+import { describe, expect, it } from 'vitest';
+import clipsJson from '../../../public/duck/clips.json';
+import { JOINT_COUNT } from './tree';
+import { blendGaits, decodeClips, pickGaits, sampleClip } from './clips';
+
+const clips = decodeClips(clipsJson);
+
+describe('decodeClips', () => {
+  it('decodes 36 gaits and 6 skills', () => {
+    expect(clips.gaits).toHaveLength(36);
+    expect([...clips.skills.keys()].sort()).toEqual([
+      'ground_pick',
+      'kick_left',
+      'kick_right',
+      'roulade',
+      'sit',
+      'stand',
+    ]);
+  });
+
+  it('sizes every joint track to frames * 14', () => {
+    for (const g of clips.gaits) expect(g.joints).toHaveLength(g.frames * JOINT_COUNT);
+    for (const s of clips.skills.values()) {
+      expect(s.joints).toHaveLength(s.frames * JOINT_COUNT);
+    }
+  });
+
+  it('dequantizes into plausible radians', () => {
+    for (const g of clips.gaits) {
+      for (const v of g.joints) expect(Math.abs(v)).toBeLessThan(3.2);
+    }
+  });
+
+  it('includes a standing-still gait', () => {
+    expect(clips.gaits.some((g) => g.cmd.every((v) => v === 0))).toBe(true);
+  });
+});
+
+describe('sampleClip', () => {
+  const frames = 4;
+  const joints = new Float32Array(frames * JOINT_COUNT);
+  // Joint 0 ramps 0, 1, 2, 3 across the four frames; the rest stay zero.
+  for (let f = 0; f < frames; f++) joints[f * JOINT_COUNT] = f;
+  const out = new Float32Array(JOINT_COUNT);
+
+  it('returns exact frames at exact phases', () => {
+    sampleClip(joints, frames, 0, out);
+    expect(out[0]).toBeCloseTo(0, 6);
+    sampleClip(joints, frames, 0.5, out);
+    expect(out[0]).toBeCloseTo(2, 6);
+  });
+
+  it('interpolates between frames', () => {
+    sampleClip(joints, frames, 0.125, out); // halfway between frame 0 and 1
+    expect(out[0]).toBeCloseTo(0.5, 6);
+  });
+
+  it('wraps the last frame back to the first', () => {
+    sampleClip(joints, frames, 0.875, out); // halfway between frame 3 and 0
+    expect(out[0]).toBeCloseTo(1.5, 6);
+  });
+
+  it('handles phase at or beyond 1', () => {
+    const a = new Float32Array(JOINT_COUNT);
+    const b = new Float32Array(JOINT_COUNT);
+    sampleClip(joints, frames, 0.25, a);
+    sampleClip(joints, frames, 1.25, b);
+    expect(b[0]).toBeCloseTo(a[0], 6);
+  });
+});
+
+describe('pickGaits', () => {
+  it('returns weights summing to one', () => {
+    for (const cmd of [
+      [0, 0, 0],
+      [0.3, 0, 0],
+      [0.07, -0.05, 0.4],
+    ] as const) {
+      const picked = pickGaits(clips.gaits, [...cmd]);
+      const total = picked.reduce((s, p) => s + p.weight, 0);
+      expect(total).toBeCloseTo(1, 6);
+      for (const p of picked) expect(p.weight).toBeGreaterThan(0);
+    }
+  });
+
+  it('picks a single clip when the command sits on a grid point', () => {
+    const picked = pickGaits(clips.gaits, [0.3, 0, 0]);
+    expect(picked).toHaveLength(1);
+    expect(picked[0].gait.cmd).toEqual([0.3, 0, 0]);
+  });
+});
+
+describe('blendGaits', () => {
+  it('reproduces a grid-point clip exactly', () => {
+    const gait = clips.gaits.find((g) => g.cmd.every((v) => v === 0))!;
+    const out = new Float32Array(JOINT_COUNT);
+    const want = new Float32Array(JOINT_COUNT);
+    blendGaits(clips.gaits, [0, 0, 0], 0.25, out);
+    sampleClip(gait.joints, gait.frames, 0.25, want);
+    for (let j = 0; j < JOINT_COUNT; j++) expect(out[j]).toBeCloseTo(want[j], 5);
+  });
+
+  it('stays finite and bounded for off-grid commands', () => {
+    const out = new Float32Array(JOINT_COUNT);
+    for (let i = 0; i <= 10; i++) {
+      blendGaits(clips.gaits, [0.05 * i - 0.15, 0.02, -0.3], i / 11, out);
+      for (const v of out) {
+        expect(Number.isFinite(v)).toBe(true);
+        expect(Math.abs(v)).toBeLessThan(3.2);
+      }
+    }
+  });
+
+  it('produces real leg motion when walking and none when standing', () => {
+    // left_hip_pitch is slot 2. This is the difference between a waddle and a
+    // statue sliding across the floor.
+    const swing = (cmd: [number, number, number]) => {
+      const out = new Float32Array(JOINT_COUNT);
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (let i = 0; i < 30; i++) {
+        blendGaits(clips.gaits, cmd, i / 30, out);
+        lo = Math.min(lo, out[2]);
+        hi = Math.max(hi, out[2]);
+      }
+      return hi - lo;
+    };
+    expect(swing([0, 0, 0])).toBeLessThan(0.02);
+    expect(swing([0.3, 0, 0])).toBeGreaterThan(0.1);
+  });
+});
