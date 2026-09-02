@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import { Window, HyperLink } from '@retropolis/ui';
+import LabConsole from '../components/LabConsole.tsx';
+
+// The Waddle Lab: the pugglenaut driven by Microduck's real trained gait.
+// The island is client:visible, not client:load — three.js should not be
+// fetched for a visitor who never scrolls this far.
+---
+
+<Base
+  title="Waddle Lab · Pugglenaut"
+  description="Drive the pugglenaut using the real reinforcement-learning gait of Pollen Robotics' Microduck — walk, turn, kick, roll and sit, replayed on the robot's exact skeleton."
+>
+  <main class="page stack">
+    <header class="stack" style="gap: 8px;">
+      <h1 class="hero-title" style="font-size: clamp(2rem, 6vw, 3.2rem);">Waddle Lab</h1>
+      <p class="hero-tagline" style="margin: 0;">
+        A pugglenaut with a robot's legs. Every step here was recorded from the
+        neural policies that ship on <em>Microduck</em>, a 25&nbsp;cm bipedal
+        robot — replayed on its exact skeleton.
+      </p>
+    </header>
+
+    <Window title="waddle-lab.exe" icon="rocket">
+      <LabConsole client:visible />
+    </Window>
+
+    <Window title="how-it-works.txt" icon="star" status="Ship schematics.">
+      <div class="stack" style="gap: 10px;">
+        <p style="margin: 0;">
+          <strong>Microduck</strong> walks by neural network. Fifty times a
+          second, 61 numbers — its gyro, which way gravity points, where its
+          joints are, what it did last, and what you asked for — go into a
+          policy that answers with 14 joint targets. Those policies were
+          trained in simulation and they ship on the real robot.
+        </p>
+        <p style="margin: 0;">
+          To get them here, that control loop was run offline and the resulting
+          joint angles recorded, then blended to follow your command. It is the
+          real gait on the real skeleton, with a baby platypus in a helmet
+          where the duck used to be.
+        </p>
+        <p style="margin: 0;">
+          There is no physics in playback, so this pugglenaut cannot be pushed
+          over. Teaching it to fall — and to get back up — means running the
+          simulator itself in the browser, which is the next thing to build.
+        </p>
+        <p style="margin: 0;">
+          <HyperLink href="https://github.com/pollen-robotics/microduck">
+            pollen-robotics/microduck →
+          </HyperLink>
+        </p>
+      </div>
+    </Window>
+
+    <p class="site-footer" style="margin: 0;">
+      <HyperLink href="/">← back to home base</HyperLink>
+    </p>
+  </main>
+</Base>

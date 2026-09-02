@@ -40,6 +40,12 @@ Pages (`src/pages/`):
 - **`/game`** — "Arcade": *Puggle Drift*, a TypeScript `<canvas>` game
   (`src/components/PuggleGame.tsx`). One-button jetpack dodger; local best in
   `localStorage`, with a global leaderboard when the backend is live.
+- **`/lab`** — "Waddle Lab": drive the pugglenaut with the real gait of
+  [Microduck](https://github.com/pollen-robotics/microduck), a 25 cm bipedal
+  robot. Joint motion is baked offline from the ONNX policies that ship on that
+  robot and replayed on its exact skeleton by `src/lib/duck/`. The 3D rig is
+  procedural Three.js (`src/lib/duck/pugglenaut.ts`) — no mesh assets. The
+  island is `client:visible`, and nothing animates until you power it on.
 - **`/guestbook`** — sign-the-wall guestbook (backend-backed; a read-only sample
   wall in fallback mode).
 - **`/contact`** — a "Signal" form that delivers a message (backend-backed; a
@@ -108,12 +114,49 @@ rm -rf vendor/retropolis-ui/dist
 cp -r ../design-system/dist vendor/retropolis-ui/dist
 ```
 
+### Re-baking the duck motion
+
+`public/duck/` is generated, not hand-written. To regenerate it you need
+checkouts of [`microduck`](https://github.com/pollen-robotics/microduck) (for
+`policies/*.onnx`) and
+[`microduck_rl`](https://github.com/pollen-robotics/microduck_rl) (for the MJCF
+model), plus [`uv`](https://docs.astral.sh/uv/). **No GPU is needed** — the bake
+replays the policies on CPU MuJoCo, and needs none of the training stack:
+
+```bash
+uv run --no-project --with mujoco --with onnxruntime --with numpy \
+    scripts/bake-duck-motion.py \
+    --microduck ../microduck --microduck-rl ../microduck_rl
+```
+
+That writes three things:
+
+| file | what |
+| --- | --- |
+| `public/duck/tree.json` | the kinematic tree — link offsets, joint limits, home pose |
+| `public/duck/clips.json` | 36 velocity-grid gaits plus 6 skill one-shots |
+| `src/lib/duck/fk-golden.json` | MuJoCo's own body transforms, as a test fixture |
+
+Every number in the first is extracted from the MJCF rather than transcribed,
+because a wrong link offset does not fail loudly — it produces a plausible
+pugglenaut that walks wrong. `src/lib/duck/fk.test.ts` holds the TypeScript
+forward kinematics to MuJoCo's answer to six decimals, which is what pins the
+joint order and rotation conventions.
+
+The site build never runs the bake and does not depend on those checkouts.
+Both upstream repos are Apache 2.0; their 3D models are CC BY-SA-NC, and this
+site ships no upstream mesh data — the pugglenaut is procedural.
+
 ## Deployment
 
-Pushing to `claude/whimsical-warbles-setup-odk9m5` triggers
+Merging to `main` triggers
 [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml), which builds
 with Astro and deploys to GitHub Pages. The custom domain is configured via
 [`public/CNAME`](./public/CNAME).
+
+Pull requests targeting `main` run the same build as a check but do not deploy:
+GitHub's auto-created `github-pages` environment only accepts deployments from
+the default branch, so a PR validates the build and merging publishes it.
 
 > **One-time setup:** in the repo, go to **Settings → Pages → Build and
 > deployment** and set **Source** to **GitHub Actions**. DNS for the apex domain
