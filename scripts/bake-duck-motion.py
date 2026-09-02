@@ -18,6 +18,7 @@ import pathlib
 
 import mujoco
 import numpy as np
+import onnxruntime as ort
 
 # Policy action order. The mouth (Microduck joint 9) is deliberately absent:
 # no policy controls it, so it is not one of the 14 actions.
@@ -87,6 +88,119 @@ def bake_tree(model: mujoco.MjModel) -> dict:
     }
 
 
+OBS_LEN = 61
+GRAVITY_VEC = np.array([0.0, 0.0, -1.0])
+
+# The gait grid. Ranges chosen inside what the walking policy was trained on.
+GAIT_VX = [-0.15, 0.0, 0.15, 0.3]
+GAIT_VY = [-0.1, 0.0, 0.1]
+GAIT_VYAW = [-1.0, 0.0, 1.0]
+
+SETTLE_TICKS = 150   # 3 s at 50 Hz -- let the gait reach steady state
+CAPTURE_TICKS = 30   # ~one gait cycle
+QUANT = 10000
+
+
+def build_obs(data, prev_action, cmd) -> np.ndarray:
+    """The 61-slot observation, laid out per microduck's duck-control/src/obs.rs.
+
+    0..3 gyro | 3..6 projected gravity | 6..20 joint pos - home
+    20..34 joint vel | 34..48 previous action | 48..61 command
+    """
+    obs = np.zeros(OBS_LEN, dtype=np.float32)
+    rot = np.zeros(9)
+    mujoco.mju_quat2Mat(rot, data.qpos[3:7])       # w, x, y, z
+    rot = rot.reshape(3, 3)
+
+    obs[0:3] = data.qvel[3:6]                      # angular velocity, trunk frame
+    obs[3:6] = rot.T @ GRAVITY_VEC                 # projected gravity
+    obs[6:20] = data.qpos[7:21] - HOME_POSE
+    obs[20:34] = data.qvel[6:20]
+    obs[34:48] = prev_action
+    obs[48:51] = cmd                               # vx, vy, vyaw
+    # 51..55 head, 55..61 body pose: all-zero is the nominal command, per obs.rs.
+    return obs
+
+
+def run_policy(model, session, cmd, settle, capture, action_scale=ACTION_SCALE):
+    """Drive the real control loop and record `capture` ticks after settling."""
+    data = mujoco.MjData(model)
+    key = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_KEY, "STAND")
+    mujoco.mj_resetDataKeyframe(model, data, key)
+
+    prev_action = np.zeros(14, dtype=np.float32)
+    joints, root_z = [], []
+
+    for tick in range(settle + capture):
+        obs = build_obs(data, prev_action, cmd)
+        action = session.run(None, {"obs": obs.reshape(1, OBS_LEN)})[0][0]
+        prev_action = action.astype(np.float32)
+        data.ctrl[:] = HOME_POSE + action_scale * action
+
+        for _ in range(10):                        # 0.002 s physics x10 = 0.02 s
+            mujoco.mj_step(model, data)
+
+        if tick >= settle:
+            joints.append(data.qpos[7:21].copy())
+            root_z.append(float(data.qpos[2]))
+
+    return np.array(joints), np.array(root_z)
+
+
+def quantize(values) -> list:
+    q = np.round(np.asarray(values) * QUANT).astype(np.int32)
+    assert np.abs(q).max() < 32768, "quantized value overflows int16"
+    return [int(v) for v in q.ravel()]
+
+
+def bake_clips(model, duck_root: pathlib.Path) -> dict:
+    policies = duck_root / "policies"
+    walk = ort.InferenceSession(str(policies / "alpha_walking.onnx"))
+
+    gaits = []
+    for vx in GAIT_VX:
+        for vy in GAIT_VY:
+            for vyaw in GAIT_VYAW:
+                cmd = np.array([vx, vy, vyaw])
+                joints, root_z = run_policy(model, walk, cmd, SETTLE_TICKS, CAPTURE_TICKS)
+                gaits.append({
+                    "cmd": [vx, vy, vyaw],
+                    "frames": len(joints),
+                    "joints": quantize(joints),
+                    "rootDz": quantize(root_z - root_z.mean()),
+                    "cycleTime": len(joints) * CONTROL_DT,
+                })
+                print(f"  gait {vx:+.2f} {vy:+.2f} {vyaw:+.2f}: "
+                      f"{len(joints)} frames, z={root_z.mean():.3f}")
+
+    # Skills: one-shots from the standing pose with a zero command. Standing
+    # tuning is action_scale 1.0 (robotd/src/control.rs).
+    skill_specs = [
+        ("kick_left", "ball_kick_left.onnx", 150),
+        ("kick_right", "ball_kick_right.onnx", 150),
+        ("roulade", "roulade.onnx", 150),
+        ("ground_pick", "alpha_ground_pick.onnx", 150),
+        ("sit", "alpha_sitstand.onnx", 100),
+        ("stand", "alpha_stand.onnx", 100),
+    ]
+    skills = []
+    for name, filename, ticks in skill_specs:
+        session = ort.InferenceSession(str(policies / filename))
+        joints, root_z = run_policy(
+            model, session, np.zeros(3), settle=0, capture=ticks, action_scale=1.0
+        )
+        skills.append({
+            "name": name,
+            "frames": len(joints),
+            "joints": quantize(joints),
+            "rootDz": quantize(root_z - root_z[0]),
+            "duration": len(joints) * CONTROL_DT,
+        })
+        print(f"  skill {name}: {len(joints)} frames, z={root_z.mean():.3f}")
+
+    return {"quantScale": QUANT, "gaits": gaits, "skills": skills}
+
+
 def bake_fk_golden(model: mujoco.MjModel, n: int = 24) -> dict:
     """MuJoCo's own body transforms for random joint poses.
 
@@ -140,6 +254,12 @@ def main() -> None:
     golden = bake_fk_golden(model)
     (args.fixtures / "fk-golden.json").write_text(json.dumps(golden))
     print(f"fk-golden.json: {len(golden['cases'])} cases")
+
+    clips = bake_clips(model, args.microduck)
+    path = args.out / "clips.json"
+    path.write_text(json.dumps(clips, separators=(",", ":")))
+    print(f"clips.json: {len(clips['gaits'])} gaits, {len(clips['skills'])} skills, "
+          f"{path.stat().st_size / 1024:.0f} KB")
 
 
 if __name__ == "__main__":
