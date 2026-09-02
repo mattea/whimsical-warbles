@@ -1,0 +1,141 @@
+/* Waddle Lab console chrome. Themed through --rp-* tokens so it follows
+   Paper / CRT / Sketch like the rest of the site. */
+
+.lab {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lab-stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  overflow: hidden;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  border-radius: 6px;
+  background: var(--rp-color-surface, #12101a);
+}
+
+.lab-viewport {
+  width: 100%;
+  height: 100%;
+}
+
+.lab-poster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+}
+
+.lab-poster-title {
+  margin: 0;
+  font-family: var(--rp-font-display, monospace);
+  font-size: clamp(1.4rem, 4vw, 2.2rem);
+}
+
+.lab-poster-sub {
+  margin: 0;
+  max-width: 34ch;
+  opacity: 0.75;
+}
+
+.lab-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f4ea;
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.lab-badge[data-mode='playback'] {
+  color: #ffcf33;
+}
+
+.lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lab-power,
+.lab-skill {
+  padding: 6px 12px;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  border-radius: 4px;
+  background: var(--rp-color-surface-raised, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.lab-power {
+  font-weight: 700;
+}
+
+.lab-power:focus-visible,
+.lab-skill:focus-visible {
+  outline: 2px solid var(--rp-color-accent, #ffcf33);
+  outline-offset: 2px;
+}
+
+.lab-skill:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.lab-skill kbd {
+  margin-left: 4px;
+  opacity: 0.7;
+  font-size: 0.75em;
+}
+
+.lab-howto {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.lab-howto kbd {
+  margin: 0 2px;
+}
+
+.lab-telemetry {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border: 1px dashed var(--rp-color-border, #8f7a45);
+  border-radius: 4px;
+  font-family: var(--rp-font-mono, monospace);
+  font-size: 0.78rem;
+}
+
+.lab-telemetry dt {
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem;
+}
+
+.lab-telemetry dd {
+  margin: 2px 0 0;
+  white-space: pre;
+}
+
+.lab-note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.72;
+}
