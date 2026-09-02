@@ -87,6 +87,40 @@ def bake_tree(model: mujoco.MjModel) -> dict:
     }
 
 
+def bake_fk_golden(model: mujoco.MjModel, n: int = 24) -> dict:
+    """MuJoCo's own body transforms for random joint poses.
+
+    The trunk freejoint is pinned to the identity pose so the fixture isolates
+    articulation from root placement -- the TS side composes the root itself.
+    """
+    data = mujoco.MjData(model)
+    rng = np.random.default_rng(20260902)
+    limits = model.jnt_range[[
+        mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, n_) for n_ in JOINT_NAMES
+    ]]
+
+    cases = []
+    for case in range(n):
+        if case == 0:
+            joints = np.zeros(14)          # all-zero
+        elif case == 1:
+            joints = HOME_POSE.copy()      # the pose everything is relative to
+        else:
+            joints = rng.uniform(limits[:, 0], limits[:, 1])
+
+        data.qpos[:] = 0.0
+        data.qpos[3] = 1.0                 # identity quaternion, w first
+        data.qpos[7:21] = joints
+        mujoco.mj_kinematics(model, data)
+
+        cases.append({
+            "joints": [float(v) for v in joints],
+            "xpos": [[float(v) for v in data.xpos[b]] for b in range(1, model.nbody)],
+            "xquat": [[float(v) for v in data.xquat[b]] for b in range(1, model.nbody)],
+        })
+    return {"cases": cases}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--microduck", type=pathlib.Path, required=True)
@@ -101,6 +135,11 @@ def main() -> None:
     tree = bake_tree(model)
     (args.out / "tree.json").write_text(json.dumps(tree, indent=1))
     print(f"tree.json: {len(tree['bodies'])} bodies, {len(tree['jointNames'])} joints")
+
+    args.fixtures.mkdir(parents=True, exist_ok=True)
+    golden = bake_fk_golden(model)
+    (args.fixtures / "fk-golden.json").write_text(json.dumps(golden))
+    print(f"fk-golden.json: {len(golden['cases'])} cases")
 
 
 if __name__ == "__main__":
