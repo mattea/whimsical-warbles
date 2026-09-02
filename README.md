@@ -149,10 +149,14 @@ site ships no upstream mesh data — the pugglenaut is procedural.
 
 ## Deployment
 
-Pushing to `claude/whimsical-warbles-setup-odk9m5` triggers
+Merging to `main` triggers
 [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml), which builds
 with Astro and deploys to GitHub Pages. The custom domain is configured via
 [`public/CNAME`](./public/CNAME).
+
+Pull requests targeting `main` run the same build as a check but do not deploy:
+GitHub's auto-created `github-pages` environment only accepts deployments from
+the default branch, so a PR validates the build and merging publishes it.
 
 > **One-time setup:** in the repo, go to **Settings → Pages → Build and
 > deployment** and set **Source** to **GitHub Actions**. DNS for the apex domain
