@@ -8,7 +8,7 @@
  * Clips are produced by `scripts/bake-duck-motion.py`.
  */
 
-import { JOINT_COUNT, type Vec3 } from './tree';
+import { JOINT_COUNT, type Quat, type Vec3 } from './tree';
 
 export interface Gait {
   cmd: Vec3;
@@ -17,6 +17,8 @@ export interface Gait {
   joints: Float32Array;
   /** frames vertical offsets, metres, mean-centred. */
   rootDz: Float32Array;
+  /** frames * 4 trunk orientations (w, x, y, z), heading removed. */
+  tilt: Float32Array;
   cycleTime: number;
 }
 
@@ -25,6 +27,7 @@ export interface SkillClip {
   frames: number;
   joints: Float32Array;
   rootDz: Float32Array;
+  tilt: Float32Array;
   duration: number;
 }
 
@@ -39,6 +42,7 @@ interface RawClip {
   frames: number;
   joints: number[];
   rootDz: number[];
+  tilt: number[];
   cycleTime?: number;
   duration?: number;
 }
@@ -64,6 +68,7 @@ export function decodeClips(json: unknown): ClipSet {
     frames: c.frames,
     joints: dequantize(c.joints, scale),
     rootDz: dequantize(c.rootDz, scale),
+    tilt: dequantize(c.tilt, scale),
     cycleTime: c.cycleTime as number,
   }));
 
@@ -74,6 +79,7 @@ export function decodeClips(json: unknown): ClipSet {
       frames: c.frames,
       joints: dequantize(c.joints, scale),
       rootDz: dequantize(c.rootDz, scale),
+      tilt: dequantize(c.tilt, scale),
       duration: c.duration as number,
     });
   }
@@ -101,6 +107,44 @@ export function sampleClip(
   const b = f1 * JOINT_COUNT;
   for (let j = 0; j < JOINT_COUNT; j++) {
     out[j] = joints[a + j] + (joints[b + j] - joints[a + j]) * frac;
+  }
+}
+
+/**
+ * Sample a looping quaternion track at `phase`, normalized-lerp between the
+ * bracketing frames. At 50 Hz consecutive orientations are close enough that
+ * nlerp and slerp are visually identical, and nlerp cannot divide by zero.
+ */
+export function sampleQuat(
+  tilt: Float32Array,
+  frames: number,
+  phase: number,
+  out: Quat,
+): void {
+  const wrapped = phase - Math.floor(phase);
+  const t = wrapped * frames;
+  const f0 = Math.floor(t) % frames;
+  const f1 = (f0 + 1) % frames;
+  const frac = t - Math.floor(t);
+
+  const a = f0 * 4;
+  const b = f1 * 4;
+  // Take the shorter arc: q and -q are the same rotation.
+  let dot = 0;
+  for (let k = 0; k < 4; k++) dot += tilt[a + k] * tilt[b + k];
+  const sign = dot < 0 ? -1 : 1;
+
+  let norm = 0;
+  for (let k = 0; k < 4; k++) {
+    const v = tilt[a + k] + (sign * tilt[b + k] - tilt[a + k]) * frac;
+    out[k] = v;
+    norm += v * v;
+  }
+  norm = Math.sqrt(norm);
+  if (norm > 1e-8) for (let k = 0; k < 4; k++) out[k] /= norm;
+  else {
+    out[0] = 1;
+    out[1] = out[2] = out[3] = 0;
   }
 }
 

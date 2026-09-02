@@ -195,3 +195,65 @@ describe('createClipLink', () => {
     expect(swing(0.3)).toBeGreaterThan(0.1);
   });
 });
+
+describe('trunk orientation', () => {
+  /** Pitch angle, degrees, from the emitted root quaternion. */
+  const pitchOf = (q: readonly number[]) => {
+    const [w, x, y, z] = q;
+    return (Math.asin(Math.max(-1, Math.min(1, 2 * (w * y - z * x)))) * 180) / Math.PI;
+  };
+
+  it('keeps the trunk upright when standing', () => {
+    const { link, seen } = harness();
+    advance(link, 1);
+    expect(Math.abs(pitchOf(seen.state!.root.quat))).toBeLessThan(5);
+    expect(seen.state!.gravity[2]).toBeCloseTo(-1, 2);
+  });
+
+  it('actually rolls the trunk through a roulade', () => {
+    const { link, seen } = harness();
+    link.do('roulade');
+    let extreme = 0;
+    const ticks = Math.round(clips.skills.get('roulade')!.duration / CONTROL_DT);
+    for (let i = 0; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      extreme = Math.max(extreme, Math.abs(pitchOf(seen.state!.root.quat)));
+    }
+    // A forward roll takes the trunk past horizontal, not a shuffle in place.
+    expect(extreme).toBeGreaterThan(60);
+  });
+
+  it('swings projected gravity during the roll, as an IMU would', () => {
+    const { link, seen } = harness();
+    link.do('roulade');
+    let minZ = Infinity;
+    const ticks = Math.round(clips.skills.get('roulade')!.duration / CONTROL_DT);
+    for (let i = 0; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      minZ = Math.min(minZ, seen.state!.gravity[2]);
+    }
+    // Upright reads -1; rolled onto its head reads well above that.
+    expect(minZ).toBeLessThan(-0.9);
+    expect(seen.state!.gravity[2]).toBeGreaterThan(-1.01);
+  });
+
+  it('emits unit quaternions throughout a roll', () => {
+    const { link, seen } = harness();
+    link.do('roulade');
+    const ticks = Math.round(clips.skills.get('roulade')!.duration / CONTROL_DT);
+    for (let i = 0; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      const n = Math.hypot(...seen.state!.root.quat);
+      expect(n).toBeCloseTo(1, 5);
+    }
+  });
+
+  it('leans the trunk on a body-pose command', () => {
+    const { link, seen } = harness();
+    advance(link, 0.5);
+    const level = pitchOf(seen.state!.root.quat);
+    link.pose({ z: 0, roll: 0, pitch: 0.3 });
+    link.tick(CONTROL_DT);
+    expect(pitchOf(seen.state!.root.quat) - level).toBeGreaterThan(10);
+  });
+});

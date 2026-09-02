@@ -14,6 +14,7 @@ outputs are committed.
 
 import argparse
 import json
+import math
 import pathlib
 
 import mujoco
@@ -122,6 +123,27 @@ def build_obs(data, prev_action, cmd) -> np.ndarray:
     return obs
 
 
+def tilt_of(quat) -> np.ndarray:
+    """The trunk's orientation with its heading removed.
+
+    Yaw is integrated in the browser from the command being held, so baking it
+    too would double-count it. What is left -- the roll and pitch -- is
+    intrinsic to the motion, and is the whole of what makes a roulade a roll
+    rather than a shuffle.
+    """
+    w, x, y, z = (float(v) for v in quat)
+    yaw = math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
+    h = -yaw / 2.0
+    cw, cz = math.cos(h), math.sin(h)
+    # Rz(-yaw) * quat
+    return np.array([
+        cw * w - cz * z,
+        cw * x - cz * y,
+        cw * y + cz * x,
+        cw * z + cz * w,
+    ])
+
+
 def run_policy(model, session, cmd, settle, capture, action_scale=ACTION_SCALE):
     """Drive the real control loop and record `capture` ticks after settling."""
     data = mujoco.MjData(model)
@@ -129,7 +151,7 @@ def run_policy(model, session, cmd, settle, capture, action_scale=ACTION_SCALE):
     mujoco.mj_resetDataKeyframe(model, data, key)
 
     prev_action = np.zeros(14, dtype=np.float32)
-    joints, root_z = [], []
+    joints, root_z, tilt = [], [], []
 
     for tick in range(settle + capture):
         obs = build_obs(data, prev_action, cmd)
@@ -143,8 +165,9 @@ def run_policy(model, session, cmd, settle, capture, action_scale=ACTION_SCALE):
         if tick >= settle:
             joints.append(data.qpos[7:21].copy())
             root_z.append(float(data.qpos[2]))
+            tilt.append(tilt_of(data.qpos[3:7]))
 
-    return np.array(joints), np.array(root_z)
+    return np.array(joints), np.array(root_z), np.array(tilt)
 
 
 def quantize(values) -> list:
@@ -162,12 +185,15 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
         for vy in GAIT_VY:
             for vyaw in GAIT_VYAW:
                 cmd = np.array([vx, vy, vyaw])
-                joints, root_z = run_policy(model, walk, cmd, SETTLE_TICKS, CAPTURE_TICKS)
+                joints, root_z, tilt = run_policy(
+                    model, walk, cmd, SETTLE_TICKS, CAPTURE_TICKS
+                )
                 gaits.append({
                     "cmd": [vx, vy, vyaw],
                     "frames": len(joints),
                     "joints": quantize(joints),
                     "rootDz": quantize(root_z - root_z.mean()),
+                    "tilt": quantize(tilt),
                     "cycleTime": len(joints) * CONTROL_DT,
                 })
                 print(f"  gait {vx:+.2f} {vy:+.2f} {vyaw:+.2f}: "
@@ -186,7 +212,7 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
     skills = []
     for name, filename, ticks in skill_specs:
         session = ort.InferenceSession(str(policies / filename))
-        joints, root_z = run_policy(
+        joints, root_z, tilt = run_policy(
             model, session, np.zeros(3), settle=0, capture=ticks, action_scale=1.0
         )
         skills.append({
@@ -194,6 +220,7 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
             "frames": len(joints),
             "joints": quantize(joints),
             "rootDz": quantize(root_z - root_z[0]),
+            "tilt": quantize(tilt),
             "duration": len(joints) * CONTROL_DT,
         })
         print(f"  skill {name}: {len(joints)} frames, z={root_z.mean():.3f}")

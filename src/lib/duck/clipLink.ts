@@ -11,7 +11,7 @@
  * `'playback'` so the UI can say so rather than imply otherwise.
  */
 
-import { blendBob, blendGaits, sampleClip, type ClipSet } from './clips';
+import { blendBob, blendGaits, pickGaits, sampleClip, sampleQuat, type ClipSet } from './clips';
 import {
   CONTROL_DT,
   type BodyPose,
@@ -21,6 +21,7 @@ import {
   type Skill,
   type Twist,
 } from './link';
+import { quatMul } from './fk';
 import { JOINT_COUNT, type DuckTree, type Quat, type Vec3 } from './tree';
 
 /** Joint slots the head command owns: neck_pitch, head_pitch, head_yaw, head_roll. */
@@ -60,10 +61,32 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
   const joints = new Float32Array(JOINT_COUNT);
   const gyro: Vec3 = [0, 0, 0];
   const gravity: Vec3 = [0, 0, -1];
+  /** Trunk roll/pitch from the clip, with heading excluded. */
+  let tilt: Quat = [1, 0, 0, 0];
 
   function emit(): void {
     const half = yaw / 2;
-    const quat: Quat = [Math.cos(half), 0, 0, Math.sin(half)];
+    const heading: Quat = [Math.cos(half), 0, 0, Math.sin(half)];
+    // Heading is integrated from the command; roll and pitch come from the
+    // recording. Composing them is what makes a roulade actually roll.
+
+    // The commanded body lean rides on top of the recorded tilt, so `pose()`
+    // still moves the trunk even though no clip was baked leaning.
+    const cr = Math.cos(body.roll / 2);
+    const sr = Math.sin(body.roll / 2);
+    const cp = Math.cos(body.pitch / 2);
+    const sp = Math.sin(body.pitch / 2);
+    const lean: Quat = [cr * cp, sr * cp, cr * sp, -sr * sp];
+    const oriented = quatMul(tilt, lean);
+    const quat = quatMul(heading, oriented);
+
+    // Projected gravity, read off the same orientation the renderer uses --
+    // so during a roll the telemetry swings the way a real IMU would.
+    const [w, x, y, z] = oriented;
+    gravity[0] = -2 * (x * z - w * y);
+    gravity[1] = -2 * (y * z + w * x);
+    gravity[2] = -(1 - 2 * (x * x + y * y));
+
     const state: DuckState = {
       joints,
       root: { pos: [pos[0], pos[1], pos[2]], quat },
@@ -94,6 +117,7 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     // A skill owns the whole body and does not travel.
     const p = clamp(skillElapsed / clip.duration, 0, 0.999999);
     sampleClip(clip.joints, clip.frames, p, joints);
+    sampleQuat(clip.tilt, clip.frames, p, tilt);
     pos[2] = tree.trunkHeight + clip.rootDz[Math.min(clip.frames - 1, Math.floor(p * clip.frames))];
     gyro[0] = 0;
     gyro[1] = 0;
@@ -125,6 +149,11 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
 
     const cmd: Vec3 = [twist.vx, twist.vy, twist.vyaw];
     blendGaits(clips.gaits, cmd, phase, joints);
+    // Tilt is taken from the single nearest gait rather than blended: averaging
+    // quaternions across four clips is not a rotation, and a walking lean is
+    // small enough that the nearest one is right.
+    const nearest = pickGaits(clips.gaits, cmd)[0];
+    sampleQuat(nearest.gait.tilt, nearest.gait.frames, phase, tilt);
 
     // Head targets ride over the blended pose. obs.rs is explicit that head
     // targets are a command rather than something added on top of the policy
@@ -158,11 +187,6 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     gyro[1] = 0;
     gyro[2] = (yaw - lastYaw) / step;
     lastYaw = yaw;
-
-    // Projected gravity for an upright trunk carrying the commanded lean.
-    gravity[0] = Math.sin(body.pitch);
-    gravity[1] = -Math.sin(body.roll);
-    gravity[2] = -Math.cos(body.pitch) * Math.cos(body.roll);
 
     emit();
   }

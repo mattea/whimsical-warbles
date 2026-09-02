@@ -132,8 +132,12 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
           reducedRef.current ? 0 : phase,
         );
         // Chase camera: follows the pugglenaut without spinning with it, so
-        // driving stays legible and nobody gets motion sick.
-        camera.position.set(pos[0] - 0.42, pos[1] - 0.46, pos[2] + 0.26);
+        // driving stays legible and nobody gets motion sick. Positioned in
+        // front-quarter rather than behind: the commands are in the robot's
+        // own frame (vx is *its* forward, exactly as on the real Microduck),
+        // so an external view is the honest one -- and it keeps the bill in
+        // shot, which is the whole point of a platypus.
+        camera.position.set(pos[0] + 0.40, pos[1] - 0.42, pos[2] + 0.22);
         camera.lookAt(pos[0], pos[1], pos[2] - 0.04);
       }
 
