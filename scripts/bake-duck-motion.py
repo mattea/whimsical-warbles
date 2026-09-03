@@ -122,25 +122,58 @@ SIT_TICKS = 120      # settle into the seat
 RISE_TICKS = 100     # robotd gives the rise 1 s before handing back
 
 
-def build_obs(data, prev_action, cmd) -> np.ndarray:
+def sense_of(data) -> tuple:
+    """The four sensed blocks, read out of a MuJoCo state.
+
+    Split out so the observation golden fixture records exactly the inputs the
+    observation was built from, rather than a second computation of them that
+    could drift.
+    """
+    rot = np.zeros(9)
+    mujoco.mju_quat2Mat(rot, data.qpos[3:7])       # w, x, y, z
+    rot = rot.reshape(3, 3)
+    return (
+        data.qvel[3:6].copy(),                     # angular velocity, trunk frame
+        rot.T @ GRAVITY_VEC,                       # projected gravity
+        data.qpos[7:21].copy(),                    # absolute joint angles
+        data.qvel[6:20].copy(),
+    )
+
+
+def assemble_obs(gyro, gravity, joint_pos, joint_vel, prev_action, twist,
+                 head=None, body=None) -> np.ndarray:
     """The 61-slot observation, laid out per microduck's duck-control/src/obs.rs.
 
     0..3 gyro | 3..6 projected gravity | 6..20 joint pos - home
     20..34 joint vel | 34..48 previous action | 48..61 command
+
+    The command block is 48..51 twist, 51..55 head, 55..57 body x/y, then body
+    z, roll, pitch and yaw one slot each. Body x, y and yaw are unbound in
+    training, so they stay zero whatever the caller asks for -- all-zero is the
+    nominal encoding there, not a placeholder. Note the body order is
+    z, roll, pitch, which obs.rs flags as easy to get backwards.
     """
     obs = np.zeros(OBS_LEN, dtype=np.float32)
-    rot = np.zeros(9)
-    mujoco.mju_quat2Mat(rot, data.qpos[3:7])       # w, x, y, z
-    rot = rot.reshape(3, 3)
-
-    obs[0:3] = data.qvel[3:6]                      # angular velocity, trunk frame
-    obs[3:6] = rot.T @ GRAVITY_VEC                 # projected gravity
-    obs[6:20] = data.qpos[7:21] - HOME_POSE
-    obs[20:34] = data.qvel[6:20]
+    obs[0:3] = gyro
+    obs[3:6] = gravity
+    obs[6:20] = np.asarray(joint_pos) - HOME_POSE
+    obs[20:34] = joint_vel
     obs[34:48] = prev_action
-    obs[48:51] = cmd                               # vx, vy, vyaw (raw m/s, rad/s)
-    # 51..55 head, 55..61 body pose: all-zero is the nominal command, per obs.rs.
+    obs[48:51] = twist                             # vx, vy, vyaw (raw m/s, rad/s)
+    if head is not None:
+        obs[51:55] = head                          # neck_pitch, head_pitch, head_yaw, head_roll
+    if body is not None:
+        obs[57], obs[58], obs[59] = body           # z, roll, pitch
     return obs
+
+
+def build_obs(data, prev_action, cmd) -> np.ndarray:
+    """The observation for a live MuJoCo state and a velocity command.
+
+    Head and body commands stay at their nominal zero: the bake drives
+    locomotion and skills, neither of which moves the head independently.
+    """
+    return assemble_obs(*sense_of(data), prev_action, cmd)
 
 
 def yaw_of(quat) -> float:
@@ -393,6 +426,163 @@ def bake_fk_golden(model: mujoco.MjModel, n: int = 24) -> dict:
     return {"cases": cases}
 
 
+# Body pose command values for the observation golden. Upstream leaves body z,
+# roll and pitch unbound -- obs.rs calls them "not commandable in slice 2",
+# carried so the layout is complete -- so there is no upstream range to draw
+# from. These are arbitrary nonzero values, whose only job is to pin slots
+# 57..59 and prove the block is ordered z, roll, pitch rather than z, pitch,
+# roll. Nothing physical depends on them.
+GOLDEN_BODY = [
+    (0.0, 0.0, 0.0),
+    (-0.02, 0.1, -0.15),
+    (0.03, -0.2, 0.25),
+    (0.01, 0.05, 0.4),
+]
+
+
+def bake_obs_golden(model: mujoco.MjModel, duck_root: pathlib.Path,
+                    n: int = 20) -> dict:
+    """Observation inputs and the resulting 61 floats, for the TS side to match.
+
+    The point of this fixture is offsets, not physics: obs.rs warns that a
+    misplaced block does not fail loudly, it produces a plausible robot that
+    falls over. So the recorded inputs are deliberately all distinct, and the
+    cases include the home pose, whose joint position block is fourteen exact
+    zeroes, and an all-zero input, whose joint position block is exactly minus
+    the home pose -- between them those pin the sign and the offset of the one
+    block that is not copied through verbatim.
+
+    The rest are real states. Half are random joint poses within the model's own
+    `jnt_range` at a random trunk attitude, as bake_fk_golden does; half are
+    snapshots of the walking policy actually walking, which is the only way to
+    get a previous action, a gyro and a projected gravity that belong together.
+    """
+    rng = np.random.default_rng(20260903)
+    joint_ids = [
+        mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, name)
+        for name in JOINT_NAMES
+    ]
+    limits = model.jnt_range[joint_ids]
+    # The head command is a joint target, so the head joints' own limits are the
+    # range it can meaningfully take.
+    head_limits = model.jnt_range[joint_ids[5:9]]
+
+    twists = [np.array([vx, 0.0, vyaw]) for vx in GAIT_VX for vyaw in GAIT_VYAW]
+
+    # Walk first: the rollout supplies both the in-distribution snapshots and
+    # the velocity scale the random cases are drawn from, so no joint velocity
+    # bound has to be invented here.
+    walk = ort.InferenceSession(str(duck_root / "policies/alpha_walking.onnx"))
+    snapshots = []
+    data = mujoco.MjData(model)
+    key = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_KEY, "STAND")
+    mujoco.mj_resetDataKeyframe(model, data, key)
+    prev_action = np.zeros(14, dtype=np.float32)
+    for tick in range(SETTLE_TICKS + 60):
+        twist = twists[(tick // 40) % len(twists)]
+        obs = build_obs(data, prev_action, twist)
+        action = walk.run(None, {"obs": obs.reshape(1, OBS_LEN)})[0][0]
+        # Snapshot before the step, so the sensed state and the previous action
+        # are the pair the policy was handed on this tick.
+        if tick >= SETTLE_TICKS and tick % 6 == 0:
+            snapshots.append((sense_of(data), prev_action.copy(), twist))
+        prev_action = action.astype(np.float32)
+        data.ctrl[:] = HOME_POSE + ACTION_SCALE * action
+        for _ in range(10):
+            mujoco.mj_step(model, data)
+    vel_scale = float(np.abs([s[0][3] for s in snapshots]).max())
+
+    cases = []
+    for case in range(n):
+        if case == 0:
+            # Every input zero. Not a valid robot state -- gravity has no
+            # magnitude -- but a useful one, because the joint position block
+            # then comes out as exactly minus the home pose, which is what
+            # catches the subtraction being done the wrong way round.
+            sense = (np.zeros(3), np.zeros(3), np.zeros(14), np.zeros(14))
+            prev, twist, head, body = np.zeros(14), np.zeros(3), np.zeros(4), GOLDEN_BODY[0]
+        elif case == 1:
+            # The home pose, upright, at rest. Joint positions must read as
+            # exactly fourteen zeroes -- they are observed relative to this.
+            data.qpos[:] = 0.0
+            data.qpos[3] = 1.0                     # identity quaternion, w first
+            data.qpos[7:21] = HOME_POSE
+            data.qvel[:] = 0.0
+            mujoco.mj_kinematics(model, data)
+            sense = sense_of(data)
+            prev, twist, head, body = np.zeros(14), np.zeros(3), np.zeros(4), GOLDEN_BODY[0]
+        elif case < 2 + (n - 2) // 2:
+            # A random attitude, so projected gravity is a genuine unit vector
+            # rather than three loose numbers. Normalising a Gaussian is the
+            # standard way to sample orientations uniformly.
+            quat = rng.normal(size=4)
+            quat /= np.linalg.norm(quat)
+            rot = np.zeros(9)
+            mujoco.mju_quat2Mat(rot, quat)
+            sense = (
+                rng.uniform(-vel_scale, vel_scale, 3),
+                rot.reshape(3, 3).T @ GRAVITY_VEC,
+                rng.uniform(limits[:, 0], limits[:, 1]),
+                rng.uniform(-vel_scale, vel_scale, 14),
+            )
+            prev = rng.uniform(-1.0, 1.0, 14)      # a policy output is bounded
+            twist = twists[case % len(twists)]
+            head = rng.uniform(head_limits[:, 0], head_limits[:, 1])
+            body = GOLDEN_BODY[case % len(GOLDEN_BODY)]
+        else:
+            sense, prev, twist = snapshots[case % len(snapshots)]
+            head = rng.uniform(head_limits[:, 0], head_limits[:, 1])
+            body = GOLDEN_BODY[case % len(GOLDEN_BODY)]
+
+        gyro, gravity, joint_pos, joint_vel = sense
+        obs = assemble_obs(gyro, gravity, joint_pos, joint_vel, prev, twist,
+                           head=head, body=body)
+        cases.append({
+            "gyro": [float(v) for v in gyro],
+            "gravity": [float(v) for v in gravity],
+            "jointPos": [float(v) for v in joint_pos],
+            "jointVel": [float(v) for v in joint_vel],
+            "prevAction": [float(v) for v in prev],
+            "twist": [float(v) for v in twist],
+            "head": [float(v) for v in head],
+            "body": [float(v) for v in body],
+            "obs": [float(v) for v in obs],
+        })
+
+    return {"homePose": [float(v) for v in HOME_POSE], "cases": cases}
+
+
+def bake_policy_golden(duck_root: pathlib.Path, obs_golden: dict,
+                       n: int = 8) -> dict:
+    """What alpha_walking.onnx answers to a handful of the golden observations.
+
+    Reuses the observation fixture's own vectors so the two tests chain: if the
+    TS builder reproduces the observation and onnxruntime-web reproduces the
+    action, the whole path from robot state to joint target is pinned against
+    Python.
+
+    Only the walking policy, and only a few cases: this is a check that the
+    browser runtime agrees with the desktop one, not a survey of the policies.
+    """
+    name = "alpha_walking.onnx"
+    session = ort.InferenceSession(str(duck_root / "policies" / name))
+
+    cases = obs_golden["cases"]
+    step = max(1, len(cases) // n)
+    picked = cases[::step][:n]
+
+    out = []
+    for kase in picked:
+        obs = np.array(kase["obs"], dtype=np.float32).reshape(1, OBS_LEN)
+        action = session.run(None, {"obs": obs})[0][0]
+        out.append({
+            "obs": kase["obs"],
+            "action": [float(v) for v in action],
+        })
+
+    return {"policy": name, "cases": out}
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--microduck", type=pathlib.Path, required=True)
@@ -412,6 +602,15 @@ def main() -> None:
     golden = bake_fk_golden(model)
     (args.fixtures / "fk-golden.json").write_text(json.dumps(golden))
     print(f"fk-golden.json: {len(golden['cases'])} cases")
+
+    obs_golden = bake_obs_golden(model, args.microduck)
+    (args.fixtures / "obs-golden.json").write_text(json.dumps(obs_golden))
+    print(f"obs-golden.json: {len(obs_golden['cases'])} cases")
+
+    policy_golden = bake_policy_golden(args.microduck, obs_golden)
+    (args.fixtures / "policy-golden.json").write_text(json.dumps(policy_golden))
+    print(f"policy-golden.json: {len(policy_golden['cases'])} cases "
+          f"of {policy_golden['policy']}")
 
     clips = bake_clips(model, args.microduck)
     path = args.out / "clips.json"

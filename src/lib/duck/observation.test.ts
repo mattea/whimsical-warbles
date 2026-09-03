@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import treeJson from '../../../public/duck/tree.json';
+import golden from './obs-golden.json';
 import { loadTree, JOINT_COUNT } from './tree';
 import {
   ACTION_LEN,
@@ -134,5 +135,50 @@ describe('actionScaleFor', () => {
   it('measures magnitude on the twist alone, not the head or body', () => {
     expect(twistMagnitude({ vx: 3, vy: 4, vyaw: 0 })).toBeCloseTo(5, 12);
     expect(twistMagnitude({ vx: 0, vy: 0, vyaw: 0 })).toBe(0);
+  });
+});
+
+/**
+ * The fixture is `scripts/bake-duck-motion.py`'s own observation, built in
+ * Python from the same states, and it is the only check here that could catch a
+ * whole block being in the wrong place *and* agreeing with a hand-written test
+ * that made the same mistake. Twenty cases: the home pose, an all-zero input,
+ * eight random joint poses at random attitudes, and ten snapshots of the walking
+ * policy mid-stride with the previous action that went with them.
+ */
+describe('buildObservation against the Python bake', () => {
+  const homePose = golden.homePose;
+
+  it('reproduces every slot of every golden case', () => {
+    expect(golden.cases.length).toBeGreaterThanOrEqual(20);
+
+    for (const [c, kase] of golden.cases.entries()) {
+      const [vx, vy, vyaw] = kase.twist;
+      const [neck, pitch, yaw, roll] = kase.head;
+      const [z, bodyRoll, bodyPitch] = kase.body;
+      const obs = buildObservation(
+        {
+          gyro: kase.gyro,
+          gravity: kase.gravity,
+          jointPos: kase.jointPos,
+          jointVel: kase.jointVel,
+          prevAction: kase.prevAction,
+          twist: { vx, vy, vyaw },
+          head: { neck, pitch, yaw, roll },
+          body: { z, roll: bodyRoll, pitch: bodyPitch },
+        },
+        homePose,
+      );
+
+      for (let i = 0; i < OBS_LEN; i++) {
+        expect(obs[i], `case ${c} slot ${i}`).toBeCloseTo(kase.obs[i], 6);
+      }
+    }
+  });
+
+  it('agrees with tree.json about the home pose it was baked against', () => {
+    // Both come from DEFAULT_POSITION in duck-control/src/model.rs. If they
+    // drifted apart, fourteen observation slots would carry a constant offset.
+    expect(homePose).toEqual(tree.homePose);
   });
 });
