@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button, Input, Table } from '@retropolis/ui';
 import { apiEnabled, getHighScores, postHighScore, type HighScore } from '../lib/api';
+import { useStageFit } from '../lib/useStageFit';
 import '../styles/game.css';
 
 /**
@@ -307,6 +308,8 @@ function drawPugglenaut(
 export default function PuggleGame() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const rafRef = useRef<number | null>(null);
   const phaseRef = useRef<Phase>('idle');
@@ -337,6 +340,10 @@ export default function PuggleGame() {
     phaseRef.current = p;
     setPhase(p);
   }, []);
+
+  // Grow the stage to fit the start / game-over card on short viewports, then
+  // snap back to the landscape play area once a run begins.
+  useStageFit(stageRef, overlayRef, phase !== 'playing');
 
   /* --- Engine lifecycle -------------------------------------------------- */
 
@@ -922,7 +929,7 @@ export default function PuggleGame() {
         below when available.
       </p>
 
-      <div className="pg-stage">
+      <div className="pg-stage" ref={stageRef}>
         <canvas
           ref={canvasRef}
           className="pg-canvas"
@@ -931,7 +938,7 @@ export default function PuggleGame() {
         />
 
         {phase === 'idle' && (
-          <div className="pg-overlay">
+          <div className="pg-overlay" ref={overlayRef}>
             <div className="pg-card">
               <h2 className="pg-card-title">Puggle Drift</h2>
               <p className="pg-howto">
@@ -954,7 +961,7 @@ export default function PuggleGame() {
         )}
 
         {phase === 'gameover' && (
-          <div className="pg-overlay">
+          <div className="pg-overlay" ref={overlayRef}>
             <div className="pg-card">
               <h2 className="pg-card-title">Splashdown!</h2>
               <p className="pg-card-sub">The pugglenaut drifted off course.</p>

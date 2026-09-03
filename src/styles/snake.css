@@ -58,8 +58,8 @@
 
 .pg-snake-card {
   width: min(420px, 100%);
-  max-height: 100%;
-  overflow-y: auto;
+  /* No inner max-height/scroll: useStageFit grows the stage so the whole card
+     fits. The overlay keeps overflow-y:auto purely as a no-JS fallback. */
   display: flex;
   flex-direction: column;
   gap: 14px;
