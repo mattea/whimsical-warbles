@@ -322,21 +322,48 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
 
     skills = []
 
+    def trim(rec, hold_ticks=10, moving=2e-3):
+        """Cut a skill at the point it stops moving.
+
+        The policies were captured for a fixed window, but most of them finish
+        long before it: both kicks put all their motion in the first half
+        second and then hold a pose for another two and a half, which reads as
+        the robot freezing mid-console rather than finishing. So each clip is
+        cut a short settle after the last frame that actually moves.
+        """
+        joints = np.array(rec.joints)
+        if len(joints) < 3:
+            return len(joints)
+        delta = np.abs(np.diff(joints, axis=0)).max(axis=1)
+        active = np.nonzero(delta > moving)[0]
+        if len(active) == 0:
+            return len(joints)
+        return int(min(len(joints), active[-1] + 1 + hold_ticks))
+
     def add_skill(name, rec, ticks, note=""):
         # Heading is deliberately not baked for skills. At the top of a roulade
         # the trunk passes through +-90 degrees of pitch, where yaw is
         # gimbal-locked and unwrapping it produces garbage -- and a forward roll
         # does not change which way the robot faces anyway.
         joints, pos, yaw, tilt = rec.arrays()
+        cut = trim(rec)
+        joints, pos, yaw, tilt = joints[:cut], pos[:cut], yaw[:cut], tilt[:cut]
         # Path relative to the start, rotated into the starting heading, so the
         # browser can replay it under whatever heading the pugglenaut has.
         y0 = yaw[0]
         dx = pos[:, 0] - pos[0, 0]
         dy = pos[:, 1] - pos[0, 1]
+        # x and y are relative to the start and rotated into the starting
+        # heading, so the browser can replay the path under whatever heading the
+        # pugglenaut happens to have. z is ABSOLUTE, straight from the
+        # simulation: reconstructing it as "standing height plus a delta" left
+        # the feet millimetres through the floor, and left the stand-up -- which
+        # begins from a seated robot, not a standing one -- needing a special
+        # case. The simulation already knows how high the trunk was.
         path = np.stack([
             dx * math.cos(y0) + dy * math.sin(y0),
             -dx * math.sin(y0) + dy * math.cos(y0),
-            pos[:, 2] - pos[0, 2],
+            pos[:, 2],
         ], axis=1)
         skills.append({
             "name": name,
@@ -346,7 +373,7 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
             "tilt": quantize(tilt),
             "duration": len(joints) * CONTROL_DT,
         })
-        print(f"  skill {name}: {len(joints)} frames "
+        print(f"  skill {name}: {len(joints)}/{ticks} frames "
               f"({len(joints) * CONTROL_DT:.2f}s) travel={path[-1][0]:+.3f}m {note}")
 
     # Kicks and the roulade take an all-zero command: being selected is the

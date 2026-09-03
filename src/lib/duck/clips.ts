@@ -125,6 +125,63 @@ export function sampleClip(
 }
 
 /**
+ * Sample a ONE-SHOT joint track, clamping at both ends.
+ *
+ * `sampleClip` wraps, because a gait cycle is a loop. A skill is not: wrapping
+ * makes the last instant of a clip interpolate back towards its first frame,
+ * which is a pose from before the skill happened. That is subtle at 50 Hz and
+ * catastrophic when a skill's final pose is held -- holding the end of the sit
+ * this way produced the standing leg pose at the seated trunk height, putting
+ * the feet six centimetres through the floor.
+ */
+export function sampleOnce(
+  joints: Float32Array,
+  frames: number,
+  progress: number,
+  out: Float32Array,
+): void {
+  const t = Math.max(0, Math.min(1, progress)) * (frames - 1);
+  const f0 = Math.floor(t);
+  const f1 = Math.min(frames - 1, f0 + 1);
+  const frac = t - f0;
+  const a = f0 * JOINT_COUNT;
+  const b = f1 * JOINT_COUNT;
+  for (let j = 0; j < JOINT_COUNT; j++) {
+    out[j] = joints[a + j] + (joints[b + j] - joints[a + j]) * frac;
+  }
+}
+
+/** Sample a ONE-SHOT quaternion track, clamping at both ends. See `sampleOnce`. */
+export function sampleQuatOnce(
+  tilt: Float32Array,
+  frames: number,
+  progress: number,
+  out: Quat,
+): void {
+  const t = Math.max(0, Math.min(1, progress)) * (frames - 1);
+  const f0 = Math.floor(t);
+  const f1 = Math.min(frames - 1, f0 + 1);
+  const frac = t - f0;
+  const a = f0 * 4;
+  const b = f1 * 4;
+  let dot = 0;
+  for (let k = 0; k < 4; k++) dot += tilt[a + k] * tilt[b + k];
+  const sign = dot < 0 ? -1 : 1;
+  let norm = 0;
+  for (let k = 0; k < 4; k++) {
+    const v = tilt[a + k] + (sign * tilt[b + k] - tilt[a + k]) * frac;
+    out[k] = v;
+    norm += v * v;
+  }
+  norm = Math.sqrt(norm);
+  if (norm > 1e-8) for (let k = 0; k < 4; k++) out[k] /= norm;
+  else {
+    out[0] = 1;
+    out[1] = out[2] = out[3] = 0;
+  }
+}
+
+/**
  * Sample a looping quaternion track at `phase`, normalized-lerp between the
  * bracketing frames. At 50 Hz consecutive orientations are close enough that
  * nlerp and slerp are visually identical, and nlerp cannot divide by zero.

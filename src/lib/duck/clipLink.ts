@@ -19,8 +19,10 @@ import {
   blendVelocity,
   pickGaits,
   sampleClip,
+  sampleOnce,
   samplePath,
   sampleQuat,
+  sampleQuatOnce,
   type ClipSet,
 } from './clips';
 import { quatMul } from './fk';
@@ -173,18 +175,23 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
       return false;
     }
 
-    const p = clamp(skillElapsed / clip.duration, 0, 0.999999);
-    sampleClip(clip.joints, clip.frames, p, joints);
-    sampleQuat(clip.tilt, clip.frames, p, tilt);
+    // Clamped, not wrapped: a skill is a one-shot, and wrapping would blend its
+    // final instant back towards the pose it started from.
+    const p = clamp(skillElapsed / clip.duration, 0, 1);
+    sampleOnce(clip.joints, clip.frames, p, joints);
+    sampleQuatOnce(clip.tilt, clip.frames, p, tilt);
 
     // The recorded trunk path, replayed under whatever heading the skill began
-    // with. This is what carries a roulade half a metre forward.
+    // with. This is what carries a roulade half a metre forward. The height is
+    // absolute -- the simulation's own trunk height, not an offset from a
+    // standing pose -- which is what keeps the feet on the floor through a roll
+    // and lets the stand-up begin from a seated robot without a special case.
     samplePath(clip.rootPath, clip.frames, p, pathAt);
     const c = Math.cos(skillYaw);
     const s = Math.sin(skillYaw);
     pos[0] = skillStart[0] + pathAt[0] * c - pathAt[1] * s;
     pos[1] = skillStart[1] + pathAt[0] * s + pathAt[1] * c;
-    pos[2] = skillStart[2] + pathAt[2];
+    pos[2] = pathAt[2];
 
     gyro[0] = 0;
     gyro[1] = 0;
@@ -196,10 +203,10 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
   function holdSeat(): void {
     const sit = clips.skills.get('sit');
     if (!sit) return;
-    sampleClip(sit.joints, sit.frames, 0.999999, joints);
-    sampleQuat(sit.tilt, sit.frames, 0.999999, tilt);
-    samplePath(sit.rootPath, sit.frames, 0.999999, pathAt);
-    pos[2] = tree.trunkHeight + pathAt[2];
+    sampleOnce(sit.joints, sit.frames, 1, joints);
+    sampleQuatOnce(sit.tilt, sit.frames, 1, tilt);
+    samplePath(sit.rootPath, sit.frames, 1, pathAt);
+    pos[2] = pathAt[2];
   }
 
   function tick(dt: number): void {
