@@ -6,7 +6,7 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "tail": "wrangler tail",
-    "db:init": "wrangler d1 execute pugglenaut --file schema.sql"
+    "db:init": "wrangler d1 execute pugglenaut --remote --file schema.sql"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260903.1",
