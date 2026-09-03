@@ -139,3 +139,41 @@
   font-size: 0.85rem;
   opacity: 0.72;
 }
+
+/* WebXR entry. Present only when navigator.xr reports the mode supported, so
+   this block never renders on a desktop browser. Pinned to the stage's bottom
+   edge rather than sitting in .lab-controls: on a phone the stage is what you
+   are looking at, and AR is a phone feature. */
+.lab-xr {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lab-xr-enter {
+  padding: 6px 12px;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f4ea;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.lab-xr-enter:focus-visible {
+  outline: 2px solid var(--rp-color-accent, #ffcf33);
+  outline-offset: 2px;
+}
+
+.lab-xr-hint {
+  color: #f7f4ea;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
