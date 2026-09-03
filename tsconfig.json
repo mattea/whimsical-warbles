@@ -1,9 +1,51 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "vendor"],
+  "$schema": "https://json.schemastore.org/tsconfig",
+
+  // Self-contained on purpose: this used to be `"extends":
+  // "astro/tsconfigs/strict"`, which cannot be read unless `node_modules` is
+  // sitting next to it.
+  //
+  // That is a stricter requirement than it sounds. TypeScript-aware tooling
+  // walks *up* the directory tree looking for a tsconfig, so any checkout of
+  // this repo that contains another project inside it -- a git worktree under
+  // `.claude/worktrees/`, for instance -- hands this file to a resolver running
+  // from the inner project, where `astro/` is not resolvable from here. Astro 7
+  // turned that into a hard error: `astro build` fails with "Tsconfig not found
+  // astro/tsconfigs/strict" while the very same tree builds fine anywhere the
+  // nesting is absent, and while CI, which clones flat, stays green. Inlining
+  // the preset removes the resolution step entirely.
+  //
+  // The values below are `astro/tsconfigs/strict` (Astro 7.2), which is
+  // `base.json` plus `strict: true`, with this project's own `jsx` settings
+  // last. Verified with `npx tsc --showConfig` before and after: the effective
+  // configuration is byte-identical. If Astro changes its recommendations,
+  // diff against `node_modules/astro/tsconfigs/{base,strict}.json` and update.
   "compilerOptions": {
+    // Top-level await and other modern ESM features.
+    "target": "ESNext",
+    "module": "ESNext",
+    // Extensionless relative paths, and npm package imports.
+    "moduleResolution": "Bundler",
+    // Allow importing TypeScript files by their native extension.
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    // Require type-only imports where they matter, which avoids bundling issues.
+    "verbatimModuleSyntax": true,
+    // Every file must be transpilable on its own.
+    "isolatedModules": true,
+    // Astro runs the TypeScript directly; nothing here emits.
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "strict": true,
+
+    // This project's own. Astro's base sets `jsx: preserve`; the React islands
+    // need the automatic runtime instead.
     "jsx": "react-jsx",
     "jsxImportSource": "react"
-  }
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist", "vendor"]
 }
