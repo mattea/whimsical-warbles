@@ -51,6 +51,8 @@ export interface DuckState {
   /** Which backend is driving. Surfaced in the UI rather than hidden. */
   health: 'playback' | 'live' | 'real';
   activeSkill: Skill | null;
+  /** Holding the seat. Sit and stand are a pair, so the UI needs to know which. */
+  seated: boolean;
   /** 0 closed, 1 fully open. */
   mouth: number;
 }

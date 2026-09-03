@@ -182,56 +182,59 @@ export function createPugglenaut(tree: DuckTree): Rig {
 
   const TRUNK = indexOf('trunk_base');
   const HEAD = indexOf('jaw_soft');
-  const NECK = indexOf('neck');
 
-  // --- Torso. Spans the hips up to the neck root, which is 3.2 cm up. ---
-  blob(TRUNK, bodyMat, v(0.002, 0, 0.006), [0.040, 0.034, 0.040]);
-  blob(TRUNK, strokeMat, v(-0.028, 0, 0.004), [0.020, 0.026, 0.028]); // life-support pack
+  // --- Torso ---------------------------------------------------------------
+  //
+  // The real Microduck is a tall thin thing: 11 cm of neck linkage above the
+  // trunk origin and 9.5 cm of leg below it. Drawing that literally gives a
+  // wading bird. A platypus has no neck to speak of, so one long torso spans
+  // the whole standing column instead -- hips at the bottom, head at the top --
+  // and the neck servos and thighs articulate away *inside* it, out of sight.
+  //
+  // The joints still move exactly as recorded; only what you can see changes.
+  const headAt = home[HEAD].pos.clone();
+  blob(TRUNK, bodyMat, v(0.0, 0, 0.026), [0.046, 0.041, 0.074]);
+  // A slight belly, low and forward, so the silhouette is a platypus rather
+  // than a capsule.
+  blob(TRUNK, bodyMat, v(0.012, 0, -0.020), [0.036, 0.035, 0.032]);
 
-  // Jetpack and flame, behind. Decoration, not a robot part.
-  const jet = new THREE.Group();
-  const jetGeo = new THREE.CapsuleGeometry(0.010, 0.024, 4, 8);
-  geometries.push(jetGeo);
-  jet.add(new THREE.Mesh(jetGeo, strokeMat));
-  attach(TRUNK, jet, v(-0.046, 0, 0.008), new THREE.Quaternion().setFromUnitVectors(UP_Y, v(0, 0, 1)));
+  // Life-support pack, high on the back and well clear of the tail below.
+  blob(TRUNK, strokeMat, v(-0.038, 0, 0.052), [0.016, 0.026, 0.024]);
+  // A single amber status light on the pack -- the mascot's accent colour.
+  blob(TRUNK, flameMat, v(-0.049, 0, 0.060), [0.004, 0.004, 0.004]);
 
-  const flameGeo = new THREE.ConeGeometry(0.009, 0.026, 10);
-  geometries.push(flameGeo);
-  const flame = new THREE.Mesh(flameGeo, flameMat);
-  flame.name = 'flame';
-  // Cone points +Y by default; aim it down.
-  attach(TRUNK, flame, v(-0.046, 0, -0.020), new THREE.Quaternion().setFromUnitVectors(UP_Y, v(0, 0, -1)));
-
-  // Tail: a flat paddle that sways off gait phase. Decorative, not a joint.
+  // Tail: wide, flat and low, angled down off the back. A platypus tail is the
+  // silhouette's other signature, so it gets room of its own rather than
+  // sharing the back with a jetpack.
   const tail = new THREE.Group();
   tail.name = 'tail';
-  attach(TRUNK, tail, v(-0.040, 0, -0.014));
-  const tailGeo = new THREE.SphereGeometry(1, 12, 8);
+  attach(
+    TRUNK,
+    tail,
+    v(-0.040, 0, -0.030),
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0.45, 0)),
+  );
+  const tailGeo = new THREE.SphereGeometry(1, 14, 10);
   geometries.push(tailGeo);
   const tailBlade = new THREE.Mesh(tailGeo, strokeMat);
-  tailBlade.scale.set(0.030, 0.017, 0.007);
-  tailBlade.position.set(-0.026, 0, -0.004);
+  tailBlade.scale.set(0.034, 0.024, 0.008);
+  tailBlade.position.set(-0.030, 0, 0);
   tail.add(tailBlade);
 
-  // --- Neck: drawn straight and centred, though the real linkage zigzags
-  // sideways around its servos. This is styling over a mechanism. ---
-  const neckGeo = new THREE.CapsuleGeometry(0.013, 0.050, 4, 10);
-  geometries.push(neckGeo);
-  const neck = new THREE.Mesh(neckGeo, bodyMat);
-  attach(NECK, neck, v(0.008, 0, 0.070), new THREE.Quaternion().setFromUnitVectors(UP_Y, v(0, 0, 1)));
-
-  // --- Head, at jaw_soft: 11.3 cm above the trunk on the real robot. ---
-  const headAt = home[HEAD].pos.clone();
-  blob(HEAD, bodyMat, headAt.clone().add(v(-0.002, 0, 0.002)), [0.027, 0.024, 0.023]);
+  // --- Head ----------------------------------------------------------------
+  //
+  // Sits directly on the torso, overlapping its top, so there is no gap where
+  // a neck would be.
+  blob(HEAD, bodyMat, headAt.clone().add(v(-0.004, 0, -0.004)), [0.031, 0.028, 0.026]);
 
   // Bill: a platypus has one, which is most of why this transfer works.
   const bill = new THREE.Group();
   bill.name = 'bill';
-  attach(HEAD, bill, headAt.clone().add(v(0.026, 0, -0.005)));
+  attach(HEAD, bill, headAt.clone().add(v(0.026, 0, -0.010)));
   const upperGeo = new THREE.SphereGeometry(1, 14, 10);
   geometries.push(upperGeo);
   const upper = new THREE.Mesh(upperGeo, billMat);
-  upper.scale.set(0.025, 0.018, 0.006);
+  upper.scale.set(0.026, 0.019, 0.006);
   bill.add(upper);
 
   const lowerBill = new THREE.Group();
@@ -239,62 +242,64 @@ export function createPugglenaut(tree: DuckTree): Rig {
   const lowerGeo = new THREE.SphereGeometry(1, 14, 10);
   geometries.push(lowerGeo);
   const lower = new THREE.Mesh(lowerGeo, billMat);
-  lower.scale.set(0.022, 0.016, 0.005);
+  lower.scale.set(0.023, 0.017, 0.005);
   lower.position.set(0.002, 0, -0.008);
   lowerBill.add(lower);
   bill.add(lowerBill);
 
   // Eyes, peering out of the visor.
   for (const side of [1, -1]) {
-    blob(HEAD, eyeMat, headAt.clone().add(v(0.014, 0.012 * side, 0.014)), [0.005, 0.005, 0.005]);
+    blob(HEAD, eyeMat, headAt.clone().add(v(0.014, 0.014 * side, 0.012)), [0.005, 0.005, 0.005]);
     blob(
       HEAD,
       catchMat,
-      headAt.clone().add(v(0.018, 0.014 * side, 0.017)),
+      headAt.clone().add(v(0.018, 0.016 * side, 0.015)),
       [0.0018, 0.0018, 0.0018],
     );
   }
 
   // Helmet: the translucent bubble, big enough that the bill sits inside it.
-  const helmetGeo = new THREE.SphereGeometry(0.040, 24, 18);
+  const helmetGeo = new THREE.SphereGeometry(0.043, 24, 18);
   geometries.push(helmetGeo);
-  attach(HEAD, new THREE.Mesh(helmetGeo, helmetMat), headAt.clone().add(v(0.004, 0, 0.004)));
+  attach(HEAD, new THREE.Mesh(helmetGeo, helmetMat), headAt.clone().add(v(0.004, 0, 0.000)));
+
   // The collar where the helmet meets the suit. In 2D this is the helmet's
   // stroke; in 3D a ring around the head's equator reads as a belt, so it
   // belongs at the base instead.
-  const rimGeo = new THREE.TorusGeometry(0.0335, 0.0022, 8, 30);
+  const rimGeo = new THREE.TorusGeometry(0.0355, 0.0022, 8, 30);
   geometries.push(rimGeo);
-  attach(HEAD, new THREE.Mesh(rimGeo, rimMat), headAt.clone().add(v(0.004, 0, -0.021)));
+  attach(HEAD, new THREE.Mesh(rimGeo, rimMat), headAt.clone().add(v(0.004, 0, -0.024)));
 
   // A glint arc high on the visor, the 2D mascot's highlight.
-  const glintGeo = new THREE.TorusGeometry(0.0335, 0.0013, 6, 24, Math.PI / 2.4);
+  const glintGeo = new THREE.TorusGeometry(0.0355, 0.0013, 6, 24, Math.PI / 2.4);
   geometries.push(glintGeo);
   attach(
     HEAD,
     new THREE.Mesh(glintGeo, rimMat),
-    headAt.clone().add(v(0.004, 0, 0.004)),
+    headAt.clone().add(v(0.004, 0, 0.000)),
     new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, Math.PI / 1.6)),
   );
 
-  // --- Legs: one capsule per bone, straight off the tree. ---
-  for (const chain of [
-    ['yaw2roll', 'hip_l', 'upper_leg_left', 'leg', 'ankle_left'],
-    ['bearing_roll', 'hip_l_2', 'upper_leg_right', 'leg_2', 'ankle_right'],
+  // --- Legs ----------------------------------------------------------------
+  //
+  // The thigh is drawn but sits inside the torso, so the leg reads as emerging
+  // from the body rather than floating below it. Only the shin and foot are
+  // really visible, which is what gives a platypus its stubby-legged stance.
+  // The hidden links still articulate, so the recorded gait is intact.
+  for (const [thigh, knee, ankle] of [
+    ['upper_leg_left', 'leg', 'ankle_left'],
+    ['upper_leg_right', 'leg_2', 'ankle_right'],
   ]) {
-    const idx = chain.map(indexOf);
-    bone(TRUNK, idx[0], 0.012, strokeMat); // hip yoke
-    bone(idx[0], idx[1], 0.011, bodyMat);
-    bone(idx[1], idx[2], 0.011, bodyMat); // thigh
-    bone(idx[2], idx[3], 0.010, bodyMat); // shin
-    bone(idx[3], idx[4], 0.009, bodyMat); // ankle
+    bone(indexOf(thigh), indexOf(knee), 0.013, bodyMat);
+    bone(indexOf(knee), indexOf(ankle), 0.012, bodyMat);
   }
 
-  // Webbed feet. Sized so the sole lands on z = 0 when the trunk stands at
+  // Webbed feet, sized so the sole lands on z = 0 when the trunk stands at
   // `trunkHeight` -- the ankles sit 9.5 cm below the trunk, leaving 2.5 cm.
   for (const ankleName of ['ankle_left', 'ankle_right']) {
     const ankle = indexOf(ankleName);
     const at = home[ankle].pos.clone();
-    blob(ankle, billMat, v(at.x + 0.008, at.y, -tree.trunkHeight + 0.008), [0.026, 0.016, 0.008]);
+    blob(ankle, billMat, v(at.x + 0.010, at.y, -tree.trunkHeight + 0.008), [0.028, 0.018, 0.008]);
   }
 
   const box = new THREE.Box3();
@@ -341,9 +346,9 @@ export function createPugglenaut(tree: DuckTree): Rig {
     const open = mouth < 0 ? 0 : mouth > 1 ? 1 : mouth;
     lowerBill.rotation.y = MOUTH_CLOSED + open * (MOUTH_OPEN - MOUTH_CLOSED);
 
-    // Decorative: tail sway and flame flicker follow gait phase.
-    tail.rotation.z = Math.sin(phase * Math.PI * 2) * 0.22;
-    flame.scale.setScalar(1 + Math.sin(phase * Math.PI * 6) * 0.18);
+    // Decorative: the tail sways with the gait. Labelled as decoration because
+    // it is not policy output -- the robot has no tail joint.
+    tail.rotation.z = Math.sin(phase * Math.PI * 2) * 0.20;
 
     root.updateMatrixWorld(true);
   }
