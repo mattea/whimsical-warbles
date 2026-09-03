@@ -8,8 +8,8 @@ ALLOWED_ORIGIN = "https://pugglenaut.com"
 [[d1_databases]]
 binding = "DB"
 database_name = "pugglenaut"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "bc70ecdf-8853-4ec5-8228-48e6e842dba3"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_KV_ID"
+id = "d970773c23ff416b838494df9ecce612"

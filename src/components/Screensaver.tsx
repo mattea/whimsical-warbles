@@ -14,10 +14,11 @@ import '../styles/screensaver.css';
  *     — a header toggle button (wired by the orchestrator) dispatches this to
  *     enable/disable at runtime; we persist the new value to localStorage.
  *
- * When ENABLED (and not under prefers-reduced-motion), 45s of no user input
- * fades in a full-screen overlay with a <canvas> animation. ANY user input
- * dismisses it instantly and restarts the idle countdown. When DISABLED it is
- * completely inert — no timer, no listeners, nothing in the DOM.
+ * When ENABLED (and not under prefers-reduced-motion), it previews immediately
+ * on toggle-on (so the control visibly does something), then fades in a
+ * full-screen overlay with a <canvas> animation after 30s of no user input.
+ * ANY user input dismisses it instantly and restarts the idle countdown. When
+ * DISABLED it is completely inert — no timer, no listeners, nothing in the DOM.
  *
  * All fast-changing animation state lives in refs and a single rAF loop, so the
  * drifting sprites never trigger React re-renders. Everything is torn down on
@@ -26,7 +27,7 @@ import '../styles/screensaver.css';
 
 const STORAGE_KEY = 'pugglenaut-screensaver';
 const TOGGLE_EVENT = 'pugglenaut:screensaver';
-const IDLE_MS = 45_000;
+const IDLE_MS = 30_000;
 
 /** Input that counts as "activity" — resets the idle timer / dismisses. */
 const INPUT_EVENTS = [
@@ -342,6 +343,11 @@ export default function Screensaver() {
       const on = !!detail?.on;
       writeEnabled(on); // persist the runtime toggle
       setEnabled(on);
+      // Immediate preview so the toggle visibly *does* something — the classic
+      // screensaver is otherwise invisible until the idle delay. The next bit of
+      // input dismisses it and the idle countdown takes over. Skipped under
+      // reduced-motion (we never auto-show a moving full-screen overlay there).
+      if (on && !prefersReducedMotion()) setActive(true);
     };
     window.addEventListener(TOGGLE_EVENT, onToggle as EventListener);
     return () => window.removeEventListener(TOGGLE_EVENT, onToggle as EventListener);
