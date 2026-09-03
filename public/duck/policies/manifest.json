@@ -54,12 +54,44 @@
   "walk": {
    "source": "alpha_walking.onnx",
    "params": 197896,
-   "bytes": 791584
+   "bytes": 791584,
+   "eager": true
   },
   "stand": {
    "source": "alpha_stand.onnx",
    "params": 197896,
-   "bytes": 791584
+   "bytes": 791584,
+   "eager": true
+  },
+  "sitstand": {
+   "source": "alpha_sitstand.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "ground_pick": {
+   "source": "alpha_ground_pick.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "kick_left": {
+   "source": "ball_kick_left.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "kick_right": {
+   "source": "ball_kick_right.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "roulade": {
+   "source": "roulade.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
   }
  }
 }

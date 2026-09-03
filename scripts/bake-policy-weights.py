@@ -75,12 +75,23 @@ EXPECTED_SHAPES = {
     "mlp.6.bias": (14,),
 }
 
-# Which policies the lab needs. The walk drives it; the stand is what gets it
-# back on its feet, and the walking policy cannot do that on its own -- from a
-# fallen state it stays down indefinitely.
+# Which policies the lab needs, and which of them the browser fetches up front.
+#
+# The walk drives it and the stand is what gets it back on its feet -- the
+# walking policy cannot do that on its own, and from a fallen state it stays
+# down indefinitely. Those two are the whole fall-and-recover story, so they
+# load with the simulator.
+#
+# The rest are skills, fetched only when someone asks for one. 773 KB each is
+# not worth spending on a kick nobody presses.
 POLICIES = [
-    ("walk", "alpha_walking.onnx"),
-    ("stand", "alpha_stand.onnx"),
+    ("walk", "alpha_walking.onnx", True),
+    ("stand", "alpha_stand.onnx", True),
+    ("sitstand", "alpha_sitstand.onnx", False),
+    ("ground_pick", "alpha_ground_pick.onnx", False),
+    ("kick_left", "ball_kick_left.onnx", False),
+    ("kick_right", "ball_kick_right.onnx", False),
+    ("roulade", "roulade.onnx", False),
 ]
 
 
@@ -133,13 +144,20 @@ def main() -> None:
         "policies": {},
     }
 
-    for slot, filename in POLICIES:
+    for slot, filename, eager in POLICIES:
         src = args.microduck / "policies" / filename
         blob, params = extract(src)
         target = args.out / f"{slot}.bin"
         target.write_bytes(blob)
-        manifest["policies"][slot] = {"source": filename, "params": params, "bytes": len(blob)}
-        print(f"{slot:<6} {filename:<24} {params:>8,} params  {len(blob) / 1024:>7.1f} KB")
+        manifest["policies"][slot] = {
+            "source": filename,
+            "params": params,
+            "bytes": len(blob),
+            "eager": eager,
+        }
+        when = "up front" if eager else "on demand"
+        print(f"{slot:<12} {filename:<24} {params:>8,} params  "
+              f"{len(blob) / 1024:>7.1f} KB  {when}")
 
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1))
     print(f"\nwrote {args.out}")
