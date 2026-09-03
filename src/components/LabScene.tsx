@@ -140,7 +140,15 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     content.add(key.target);
 
     // Floor at z = 0, where the MJCF's ground plane sits.
-    const grid = new THREE.GridHelper(2, 20, 0x8f7a45, 0x8f7a45);
+    //
+    // Six metres, in 10 cm cells. The cell size is the same as it always was
+    // and is deliberately real -- it reads as scale, and in VR it is a floor
+    // someone is standing on. The extent grew for the live simulator: playback
+    // ambles, but a shove sends the pugglenaut a metre or more, and off the old
+    // two-metre grid the chase camera showed it lying in an empty void with no
+    // floor to have fallen onto. MuJoCo's own plane is infinite, so nothing
+    // about the physics changes here; only how much of it you can see.
+    const grid = new THREE.GridHelper(6, 60, 0x8f7a45, 0x8f7a45);
     grid.rotation.x = Math.PI / 2;
     const gridMat = grid.material as THREE.Material;
     gridMat.opacity = 0.28;
