@@ -361,8 +361,13 @@ export default function PuggleGame() {
       deathFlash: 0,
       reduced: prefersReducedMotion(),
       palette: readPalette(),
-      scaleX: 1,
-      scaleY: 1,
+      // Seed the world→canvas scale from the CURRENT canvas so a game started
+      // (or restarted) mid-session draws full-size. Without this, a fresh engine
+      // defaulted to 1:1 and the 600×400 world filled only ~2/3 of a larger
+      // canvas until the next window resize recomputed it. resize() keeps this
+      // in sync afterwards.
+      scaleX: canvasRef.current ? canvasRef.current.width / WORLD_W : 1,
+      scaleY: canvasRef.current ? canvasRef.current.height / WORLD_H : 1,
     };
   }, []);
 

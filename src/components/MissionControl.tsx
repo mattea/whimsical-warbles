@@ -194,7 +194,12 @@ export default function MissionControl({ open, onClose }: Props) {
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') {
+    if (e.key === '`') {
+      // Backtick toggles the console shut too (matches how it opens it) — no
+      // command needs a backtick, so this never eats real input.
+      e.preventDefault();
+      onClose();
+    } else if (e.key === 'Enter') {
       run(value);
       setValue('');
     } else if (e.key === 'ArrowUp') {

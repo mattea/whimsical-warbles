@@ -19,10 +19,21 @@ interface Beacon {
   note: string;
 }
 
-// Static, network-free state shown before/without a backend.
+// Static, network-free state shown when there is no backend at all (never
+// swaps, so its longer label can't cause a layout shift).
 const IDLE: Beacon = {
   state: 'neutral',
   label: 'Somewhere in low orbit',
+  note: '',
+};
+
+// Short neutral state used *while a backend is configured* — as the pre-fetch
+// placeholder and the on-error fallback. Kept label-less (just the dot) so the
+// swap to "Away" / "In orbit" fits the reserved label width and never bounces
+// the nav.
+const CHECKING: Beacon = {
+  state: 'neutral',
+  label: '',
   note: '',
 };
 
@@ -35,7 +46,9 @@ function fromStatus(info: StatusInfo): Beacon {
 }
 
 export default function StatusBeacon() {
-  const [beacon, setBeacon] = useState<Beacon>(IDLE);
+  // With a backend, start on the short neutral placeholder (no long label to
+  // shrink from); without one, show the static idle label and never fetch.
+  const [beacon, setBeacon] = useState<Beacon>(apiEnabled ? CHECKING : IDLE);
 
   useEffect(() => {
     // No backend → keep the gentle static state, make no network call.
@@ -46,8 +59,8 @@ export default function StatusBeacon() {
         if (alive) setBeacon(fromStatus(info));
       })
       .catch(() => {
-        // Never show an error in the header — stay on the neutral pill.
-        if (alive) setBeacon(IDLE);
+        // Never show an error in the header — stay on the short neutral pill.
+        if (alive) setBeacon(CHECKING);
       });
     return () => {
       alive = false;

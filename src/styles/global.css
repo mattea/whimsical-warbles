@@ -496,3 +496,13 @@ body.fx-roll {
   opacity: 1;
   transform: scale(1);
 }
+
+/* Sketch theme fix: the DS's hand-drawn border rule lists `.rp-tooltip__bubble`
+   in an :is() set that forces `position: relative`, which knocks the bubble out
+   of `absolute` into normal flow — so each button's hidden tooltip text adds
+   ~100px of layout width and the control deck balloons in Sketch. Restore
+   absolute; the wobble ::after still anchors to the bubble. (Root cause is in
+   mattea/design-system's retropolis.css.) */
+[data-rp-theme^='sketch'] .rp-tooltip__bubble {
+  position: absolute;
+}

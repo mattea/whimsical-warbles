@@ -39,6 +39,15 @@
   animation: pg-sb-pulse 2s ease-out infinite;
 }
 
+.pg-sb-label {
+  /* Reserve room for the longest resolved label ("In orbit") so swapping in
+     from the neutral placeholder / "Away" never changes the pill width and
+     shoves the nav. The static no-backend label is longer and simply expands
+     past this (it never swaps, so no shift). */
+  display: inline-block;
+  min-width: 5.6em;
+}
+
 .pg-sb-online .pg-sb-label {
   color: var(--rp-text);
 }

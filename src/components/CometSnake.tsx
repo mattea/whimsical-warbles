@@ -293,8 +293,11 @@ export default function CometSnake() {
       deathFlash: 0,
       reduced: prefersReducedMotion(),
       palette: readPalette(),
-      scaleX: 1,
-      scaleY: 1,
+      // Seed the world→canvas scale from the CURRENT canvas so a run started
+      // (or restarted) mid-session draws full-size instead of ~2/3 until the
+      // next window resize. resize() keeps this in sync afterwards.
+      scaleX: canvasRef.current ? canvasRef.current.width / WORLD_W : 1,
+      scaleY: canvasRef.current ? canvasRef.current.height / WORLD_H : 1,
     };
   }, []);
 
