@@ -18,7 +18,7 @@
  * `reset` -- are extra methods on the returned object rather than additions to
  * `DuckLink`. The interface is the contract the console shares with the
  * playback and (eventually) hardware backends, and neither of those can honour
- * a shove.
+ * a boop.
  */
 
 import {
@@ -80,15 +80,19 @@ export interface SimReady {
 }
 
 /**
- * The default shove: 2.5 m/s straight into the trunk's free joint, along world
+ * The default boop: 2.5 m/s straight into the trunk's free joint, along world
  * +y.
  *
  * World frame rather than body frame, and always the same direction, because
  * that is what a hand reaching in from the side of a desk does. The magnitude
- * is the one this was tuned against: it reliably puts a walking pugglenaut on
- * the floor without launching it.
+ * is the one this was tuned against: it reliably puts the pugglenaut on the
+ * floor without launching it across the room.
+ *
+ * Measured against the balance policy, which is what runs when it is standing
+ * still and is much harder to topple than the walking one: 2.5 m/s takes
+ * upright from +1.00 to about -0.9, and it recovers unaided.
  */
-export const DEFAULT_SHOVE: Vec3 = [0, 2.5, 0];
+export const DEFAULT_BOOP: Vec3 = [0, 2.5, 0];
 
 export interface SimLinkOptions {
   worker: SimWorkerLike;
@@ -108,7 +112,7 @@ export interface SimLinkOptions {
 }
 
 export interface SimLink extends DuckLink {
-  /** Shove the trunk. Emergent, and not reproducible -- see `simWorker.ts`. */
+  /** Boop the trunk over. Emergent, and not reproducible -- see `simWorker.ts`. */
   push(impulse?: Vec3): void;
   /** Back to the STAND keyframe, with the controller's state cleared. */
   reset(): void;
@@ -337,7 +341,7 @@ export function createSimLink(options: SimLinkOptions): SimLink {
       if (!settled) rejectReady(new Error('the simulator was disposed before it started'));
     },
 
-    push(impulse: Vec3 = DEFAULT_SHOVE) {
+    push(impulse: Vec3 = DEFAULT_BOOP) {
       post({ type: 'push', impulse: [impulse[0], impulse[1], impulse[2]] });
     },
     reset() {

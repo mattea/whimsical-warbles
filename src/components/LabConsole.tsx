@@ -73,8 +73,8 @@ const EAGER_POLICIES: PolicySlot[] = ['walk', 'stand'];
  */
 const LIVE_COST = 'about 4 MB: a 2.1 MB physics engine, 1.4 MB of trained weights and 350 KB of robot model';
 
-/** The shove, keyed. Nothing else in the lab uses X. */
-const SHOVE_KEY = 'x';
+/** The boop, keyed. Nothing else in the lab uses X. */
+const BOOP_KEY = 'x';
 
 export default function LabConsole() {
   // The tree is 4 KB and the rig needs it up front, so it rides in the bundle.
@@ -88,6 +88,7 @@ export default function LabConsole() {
   const [running, setRunning] = useState(false);
   const [reduced, setReduced] = useState(false);
   const [fps, setFps] = useState(0);
+  const [immersive, setImmersive] = useState(false);
   const [state, setState] = useState<DuckState | null>(null);
 
   // Live physics. Kept alongside the playback backend rather than replacing
@@ -103,6 +104,8 @@ export default function LabConsole() {
   const link: DuckLink | null = live ? sim : clip;
 
   const held = useRef(new Set<string>());
+  /** The DOM overlay handed to an AR session, so the pad shows over the camera. */
+  const padRef = useRef<HTMLDivElement | null>(null);
   // Read inside the gamepad poll, which must not re-subscribe on every change.
   const seatedRef = useRef(false);
   seatedRef.current = state?.seated ?? false;
@@ -250,6 +253,71 @@ export default function LabConsole() {
     });
   }, [link]);
 
+  /**
+   * On-screen driving, for anything without a keyboard.
+   *
+   * These press the same tokens the keyboard does into the same held-key set,
+   * so `pushCommand` composes them identically -- there is one definition of
+   * what "forward and turning left at once" means, not two. The map is keyed by
+   * pointer id so two thumbs work: holding forward while turning is the whole
+   * point of a drive pad.
+   */
+  const touchPointers = useRef(new Map<number, string>());
+
+  const touchStart = useCallback(
+    (token: string) => (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      // Capture keeps the press alive if the finger slides off the button, but
+      // it is not essential and it throws when the id is not an active pointer.
+      // Letting that escape would abandon the rest of this handler and leave
+      // the key unpressed -- which is exactly how turning silently stopped
+      // working while driving forward still did.
+      try {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+      } catch {
+        /* no capture; the pointerup listener still clears the key */
+      }
+      touchPointers.current.set(e.pointerId, token);
+      held.current.add(token);
+      pushCommand();
+    },
+    [pushCommand],
+  );
+
+  const touchEnd = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      const token = touchPointers.current.get(e.pointerId);
+      if (!token) return;
+      touchPointers.current.delete(e.pointerId);
+      // Only clear the token if no other finger is still holding it.
+      if (![...touchPointers.current.values()].includes(token)) held.current.delete(token);
+      pushCommand();
+    },
+    [pushCommand],
+  );
+
+  // A pointer lost mid-drag must not leave the pugglenaut driving forever.
+  useEffect(() => {
+    if (running) return;
+    touchPointers.current.clear();
+  }, [running]);
+
+  /**
+   * Stop taps on the pad from also counting as an XR `select`.
+   *
+   * In an AR session with a DOM overlay, a tap on the overlay raises
+   * `beforexrselect` and then, unless that is cancelled, `select` on the
+   * session too. The lab uses `select` to place the pugglenaut, so without this
+   * every press of "forward" would also pick it up and put it down again.
+   */
+  useEffect(() => {
+    const pad = padRef.current;
+    if (!pad) return;
+    const swallow = (e: Event) => e.preventDefault();
+    pad.addEventListener('beforexrselect', swallow);
+    return () => pad.removeEventListener('beforexrselect', swallow);
+  }, []);
+
   useEffect(() => {
     if (!running || !link) return;
     // Bound locally so the nested handlers capture a non-null link.
@@ -277,7 +345,7 @@ export default function LabConsole() {
         duck.do(skill);
         return;
       }
-      if (k === SHOVE_KEY && live && sim) {
+      if (k === BOOP_KEY && live && sim) {
         e.preventDefault();
         sim.push();
         return;
@@ -361,7 +429,7 @@ export default function LabConsole() {
   const fetching = live && sim ? sim.loading() : [];
 
   return (
-    <div className="lab">
+    <div className={immersive ? 'lab is-immersive' : 'lab'}>
       <div className="lab-stage">
         {running && link ? (
           <LabScene
@@ -370,6 +438,8 @@ export default function LabConsole() {
             running={running}
             reducedMotion={reduced}
             onFps={setFps}
+            overlayRoot={padRef}
+            onImmersive={setImmersive}
           />
         ) : (
           <div className="lab-poster">
@@ -387,6 +457,69 @@ export default function LabConsole() {
         <div className="lab-badge" data-mode={state?.health ?? 'playback'}>
           {state?.health === 'live' ? 'SIM: LIVE' : 'SIM: PLAYBACK'}
           {running && fps > 0 ? ` · ${fps} fps` : ''}
+        </div>
+
+        {/* The drive pad. Always rendered so an AR session has an overlay root
+            to hand over, but only visible where there is no keyboard -- a
+            coarse pointer, or an XR session. */}
+        <div className="lab-pad" ref={padRef} hidden={!running}>
+          <button
+            type="button"
+            className="lab-pad-key lab-pad-fwd"
+            aria-label="Walk forward"
+            onPointerDown={touchStart('w')}
+            onPointerUp={touchEnd}
+            onPointerCancel={touchEnd}
+            onLostPointerCapture={touchEnd}
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            className="lab-pad-key lab-pad-left"
+            aria-label="Turn left"
+            onPointerDown={touchStart('a')}
+            onPointerUp={touchEnd}
+            onPointerCancel={touchEnd}
+            onLostPointerCapture={touchEnd}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            className="lab-pad-key lab-pad-right"
+            aria-label="Turn right"
+            onPointerDown={touchStart('d')}
+            onPointerUp={touchEnd}
+            onPointerCancel={touchEnd}
+            onLostPointerCapture={touchEnd}
+          >
+            ▶
+          </button>
+          <button
+            type="button"
+            className="lab-pad-key lab-pad-back"
+            aria-label="Walk backward"
+            onPointerDown={touchStart('s')}
+            onPointerUp={touchEnd}
+            onPointerCancel={touchEnd}
+            onLostPointerCapture={touchEnd}
+          >
+            ▼
+          </button>
+          {live ? (
+            <button
+              type="button"
+              className="lab-pad-key lab-pad-boop"
+              aria-label="Boop it over"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                sim?.push();
+              }}
+            >
+              boop
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -435,10 +568,10 @@ export default function LabConsole() {
           type="button"
           className="lab-skill"
           disabled={!live}
-          title="Shove the trunk sideways at 2.5 m/s. Only physics can be pushed."
+          title="Adds 2.5 m/s sideways to the trunk in the physics engine. It falls over for real, then the stand-up policy takes over."
           onClick={() => sim?.push()}
         >
-          Shove <kbd>X</kbd>
+          Boop it over <kbd>X</kbd>
         </button>
 
         <button
@@ -502,7 +635,7 @@ export default function LabConsole() {
         turn (arrow keys do the same), <kbd>Space</kbd> for the bill
         {live ? (
           <>
-            , <kbd>X</kbd> to shove it over
+            , <kbd>X</kbd> to boop it over
           </>
         ) : null}
         . A gamepad works too. There is no sideways: the shipped walking policy

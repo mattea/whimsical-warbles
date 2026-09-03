@@ -241,3 +241,81 @@
 .lab-badge[data-mode='live'] {
   color: #7ce4a8;
 }
+
+/* The on-screen drive pad.
+   Hidden by default: a visitor with a keyboard has WASD and does not need
+   thumb buttons over the viewport. It appears where there is no keyboard --
+   a coarse pointer, or an AR session compositing it over the camera feed. */
+.lab-pad {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: none;
+  grid-template-areas:
+    '.    fwd  boop'
+    'left back right';
+  gap: 5px;
+  /* Without this a drag on a button scrolls or zooms the page instead. */
+  touch-action: none;
+}
+
+.lab-pad-key {
+  /* Thumb-sized but no larger: the stage on a phone is only about 260 px tall,
+     and two rows of buttons eat a third of it. */
+  width: 46px;
+  height: 40px;
+  border: 2px solid rgba(247, 244, 234, 0.5);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f4ea;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  /* A held button must not also select text or raise a context menu. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.lab-pad-key:active {
+  background: rgba(255, 207, 51, 0.35);
+  border-color: #ffcf33;
+}
+
+.lab-pad-fwd {
+  grid-area: fwd;
+}
+.lab-pad-back {
+  grid-area: back;
+}
+.lab-pad-left {
+  grid-area: left;
+}
+.lab-pad-right {
+  grid-area: right;
+}
+
+.lab-pad-boop {
+  grid-area: boop;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+@media (pointer: coarse) {
+  .lab-pad {
+    display: grid;
+  }
+}
+
+/* The `hidden` attribute is only a UA rule, so `.lab-pad { display: grid }`
+   outranks it on specificity and the pad would show while powered down. */
+.lab-pad[hidden],
+.lab.is-immersive .lab-pad[hidden] {
+  display: none;
+}
+
+/* In an immersive session the pad is the only control surface there is, so it
+   shows regardless of what kind of pointer the device reports. */
+.lab.is-immersive .lab-pad {
+  display: grid;
+}

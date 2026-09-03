@@ -18,7 +18,7 @@
  * time there is nothing to buy.
  *
  * **Falls are not reproducible.** Contact resolution and floating-point
- * ordering make the exact tumble diverge between runs -- the same shove from
+ * ordering make the exact tumble diverge between runs -- the same boop from
  * the same keyframe lands the pugglenaut somewhere slightly different every
  * time. That is a property of the physics, not a defect here, and nothing in
  * this file or its tests should ever assume a frame-identical replay. What is
@@ -398,7 +398,7 @@ ctx.addEventListener('message', (event) => {
       case 'push': {
         if (!sim) break;
         // Straight into the free joint's linear velocity. A force would be
-        // more principled, but a velocity step is what the shove was tuned
+        // more principled, but a velocity step is what the boop was tuned
         // against and it is the same thing a hand does to a 25 cm robot.
         const qvel = sim.data.qvel as Float64Array;
         for (let i = 0; i < 3; i++) qvel[i] += message.impulse[i];

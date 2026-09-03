@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import {
   AR_SESSION_INIT,
+  arSessionInit,
   detectXRSupport,
   floorHeight,
   placeContent,
@@ -223,5 +224,35 @@ describe('resetContent', () => {
     expect(p.x).toBeCloseTo(0.3, 9);
     expect(p.y).toBeCloseTo(-0.2, 9);
     expect(p.z).toBeCloseTo(0.25, 9);
+  });
+});
+
+describe('arSessionInit', () => {
+  it('is the plain init when there is nothing to overlay', () => {
+    expect(arSessionInit(null)).toBe(AR_SESSION_INIT);
+    expect(arSessionInit(undefined)).toBe(AR_SESSION_INIT);
+  });
+
+  it('asks for dom-overlay when given a root', () => {
+    const root = { nodeType: 1 } as unknown as Element;
+    const init = arSessionInit(root) as XRSessionInit & { domOverlay?: { root: Element } };
+    expect(init.optionalFeatures).toContain('dom-overlay');
+    expect(init.domOverlay?.root).toBe(root);
+  });
+
+  it('never requires anything, so a missing feature cannot kill the session', () => {
+    // dom-overlay is unevenly supported and a headset has no use for it. A
+    // required feature that is not granted fails the whole requestSession.
+    const root = { nodeType: 1 } as unknown as Element;
+    for (const init of [AR_SESSION_INIT, arSessionInit(root)]) {
+      expect(init.requiredFeatures ?? []).toEqual([]);
+    }
+  });
+
+  it('keeps hit-test and local-floor when overlaying', () => {
+    const root = { nodeType: 1 } as unknown as Element;
+    const init = arSessionInit(root);
+    expect(init.optionalFeatures).toContain('hit-test');
+    expect(init.optionalFeatures).toContain('local-floor');
   });
 });
