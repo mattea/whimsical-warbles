@@ -468,3 +468,25 @@ body.fx-roll {
   --hero-color: var(--rp-ink, #1c1030);
   --hero-shadow: rgba(60, 60, 70, 0.22);
 }
+
+/* ==========================================================================
+   Tooltip — dismiss on mouse-away after a click
+   ========================================================================== */
+
+/* The Retropolis tooltip shows its bubble on :hover OR :focus-within. After a
+   mouse click the trigger (e.g. a control-deck icon button) keeps focus, so
+   :focus-within holds the label open even once the pointer leaves — it only
+   clears on the next click elsewhere. Narrow the focus trigger to *keyboard*
+   focus (:focus-visible): clicking a control and moving the mouse away now
+   hides the bubble, while keyboard users still get it on focus. These rules
+   load after the design system's, so they win the cascade. Values mirror the
+   DS hidden/shown states (opacity 0→1, scale 0.85→1). */
+.rp-tooltip:focus-within .rp-tooltip__bubble {
+  opacity: 0;
+  transform: scale(0.85);
+}
+.rp-tooltip:hover .rp-tooltip__bubble,
+.rp-tooltip:has(:focus-visible) .rp-tooltip__bubble {
+  opacity: 1;
+  transform: scale(1);
+}
