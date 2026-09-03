@@ -242,35 +242,55 @@
   color: #7ce4a8;
 }
 
-/* The on-screen drive pad.
-   Hidden by default: a visitor with a keyboard has WASD and does not need
-   thumb buttons over the viewport. It appears where there is no keyboard --
-   a coarse pointer, or an AR session compositing it over the camera feed. */
+/* The AR / touch overlay.
+   This is the element handed to an XR session as its `dom-overlay` root, which
+   the UA promotes to a full-screen layer. It must stay click-through: a tap
+   that is not on a control has to reach the session, or the tap that places the
+   pugglenaut never arrives. Only the pad inside it takes input. */
+.lab-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The drive pad: a thumb-sized ring in a corner.
+   Hidden by default -- a visitor with a keyboard has WASD and does not need
+   buttons over the viewport. It appears where there is no keyboard: a coarse
+   pointer, or an immersive session. */
 .lab-pad {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  bottom: 14px;
+  width: 116px;
+  height: 116px;
   display: none;
-  grid-template-areas:
-    '.    fwd  boop'
-    'left back right';
-  gap: 5px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.34);
+  border: 2px solid rgba(247, 244, 234, 0.3);
+  pointer-events: auto;
   /* Without this a drag on a button scrolls or zooms the page instead. */
   touch-action: none;
 }
 
+.lab-pad-right {
+  right: 14px;
+}
+
+.lab-pad-left {
+  left: 14px;
+}
+
 .lab-pad-key {
-  /* Thumb-sized but no larger: the stage on a phone is only about 260 px tall,
-     and two rows of buttons eat a third of it. */
-  width: 46px;
+  position: absolute;
+  width: 40px;
   height: 40px;
-  border: 2px solid rgba(247, 244, 234, 0.5);
-  border-radius: 6px;
+  border: 2px solid rgba(247, 244, 234, 0.45);
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.55);
   color: #f7f4ea;
   font: inherit;
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1;
+  padding: 0;
   /* A held button must not also select text or raise a context menu. */
   user-select: none;
   -webkit-user-select: none;
@@ -278,44 +298,74 @@
 }
 
 .lab-pad-key:active {
-  background: rgba(255, 207, 51, 0.35);
+  background: rgba(255, 207, 51, 0.4);
   border-color: #ffcf33;
 }
 
 .lab-pad-fwd {
-  grid-area: fwd;
+  top: 2px;
+  left: 36px;
 }
 .lab-pad-back {
-  grid-area: back;
+  bottom: 2px;
+  left: 36px;
 }
-.lab-pad-left {
-  grid-area: left;
+.lab-pad-turn-left {
+  left: 2px;
+  top: 36px;
 }
-.lab-pad-right {
-  grid-area: right;
+.lab-pad-turn-right {
+  right: 2px;
+  top: 36px;
 }
 
+/* The boop sits in the middle of the ring, where a thumb rests between
+   presses -- it is a one-shot, not something to hold. */
 .lab-pad-boop {
-  grid-area: boop;
+  top: 36px;
+  left: 36px;
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  border-style: dashed;
+}
+
+.lab-pad-replace,
+.lab-pad-swap {
+  position: absolute;
+  top: -34px;
+  right: 0;
+  width: 30px;
+  height: 26px;
+  border: 2px solid rgba(247, 244, 234, 0.35);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #f7f4ea;
+  font: inherit;
   font-size: 0.8rem;
-  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 0;
+}
+
+/* The re-place button sits beside the side-swap one. */
+.lab-pad-replace {
+  right: 36px;
 }
 
 @media (pointer: coarse) {
   .lab-pad {
-    display: grid;
+    display: block;
   }
-}
-
-/* The `hidden` attribute is only a UA rule, so `.lab-pad { display: grid }`
-   outranks it on specificity and the pad would show while powered down. */
-.lab-pad[hidden],
-.lab.is-immersive .lab-pad[hidden] {
-  display: none;
 }
 
 /* In an immersive session the pad is the only control surface there is, so it
    shows regardless of what kind of pointer the device reports. */
 .lab.is-immersive .lab-pad {
-  display: grid;
+  display: block;
+}
+
+/* The `hidden` attribute is only a UA rule, so `.lab-pad { display: ... }`
+   outranks it on specificity and the pad would show while powered down. */
+.lab-pad[hidden],
+.lab.is-immersive .lab-pad[hidden] {
+  display: none;
 }
