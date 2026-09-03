@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { CONTROL_DT, type DuckLink, type DuckState } from '../lib/duck/link';
 import { createPugglenaut, PALETTE, type Rig } from '../lib/duck/pugglenaut';
-import type { DuckTree } from '../lib/duck/tree';
+import type { DuckTree, Vec3 } from '../lib/duck/tree';
 import {
   AR_SESSION_INIT,
   arSessionInit,
@@ -55,6 +55,25 @@ export interface LabSceneProps {
    * control surface there is, whatever kind of pointer the device claims.
    */
   onImmersive?: (immersive: boolean) => void;
+  /**
+   * A spot on the floor the visitor tapped, in the scene's own Z-up frame.
+   *
+   * The scene reports taps rather than acting on them: it owns the camera and
+   * the AR hit test, so it is the only thing that can turn a screen point into
+   * a floor point -- but where the pugglenaut walks is the console's business.
+   */
+  onTarget?: (target: Vec3 | null) => void;
+  /** The current walk target, drawn as a marker. */
+  target?: Vec3 | null;
+  /**
+   * Bump to re-arm AR placement.
+   *
+   * A counter rather than a callback because the scene lives inside one long
+   * effect: it watches the number and re-arms when it changes. Needed because
+   * a tap now means "walk here" once he is placed, so moving him to another
+   * table needs its own control.
+   */
+  rePlaceNonce?: number;
 }
 
 /** Never advance more than this much simulated time in one frame. */
@@ -82,6 +101,9 @@ export default function LabScene({
   onFps,
   overlayRoot,
   onImmersive,
+  onTarget,
+  target,
+  rePlaceNonce = 0,
 }: LabSceneProps) {
   const holder = useRef<HTMLDivElement>(null);
   // Read inside the animation loop so changing them does not rebuild the scene.
@@ -90,11 +112,17 @@ export default function LabScene({
   const fpsRef = useRef(onFps);
   const overlayRefLatest = useRef(overlayRoot);
   const immersiveRef = useRef(onImmersive);
+  const targetCbRef = useRef(onTarget);
+  const targetRef = useRef(target);
+  const rePlaceRef = useRef(rePlaceNonce);
   runningRef.current = running;
   reducedRef.current = reducedMotion;
   fpsRef.current = onFps;
   overlayRefLatest.current = overlayRoot;
   immersiveRef.current = onImmersive;
+  targetCbRef.current = onTarget;
+  targetRef.current = target;
+  rePlaceRef.current = rePlaceNonce;
 
   // Which immersive modes this device will grant. Starts at "none", so the
   // control is absent until a probe says otherwise -- the desktop default.
@@ -202,6 +230,19 @@ export default function LabScene({
     const rig: Rig = createPugglenaut(tree);
     content.add(rig.root);
 
+    // Where a tap sent him. Flat on the floor in the scene's Z-up frame, so it
+    // rides along correctly when AR anchors the whole group to a real surface.
+    const markerGeo = new THREE.RingGeometry(0.03, 0.045, 24);
+    const markerMat = new THREE.MeshBasicMaterial({
+      color: PALETTE.flame,
+      transparent: true,
+      opacity: 0.85,
+      side: THREE.DoubleSide,
+    });
+    const marker = new THREE.Mesh(markerGeo, markerMat);
+    marker.visible = false;
+    content.add(marker);
+
     // The placement reticle. It is parented to the SCENE, not to `content`:
     // hit-test poses arrive already in the XR reference space, so putting it
     // under the Z-up group would rotate it out from under the surface it is
@@ -275,6 +316,7 @@ export default function LabScene({
     let placed = false;
     /** A tap happened; the frame loop acts on it, where the poses are live. */
     let selectPending = false;
+    let seenNonce = rePlaceNonce;
     /** Is the reticle currently on a real surface? */
     let hitReady = false;
 
@@ -311,6 +353,21 @@ export default function LabScene({
       anchor.y = floorY;
     }
 
+    const targetLocal = new THREE.Vector3();
+
+    /**
+     * Hand a world-space floor point to the console, in the scene's own frame.
+     *
+     * `content` carries the Z-up rotation and, in AR, the anchor transform, so
+     * a point has to come back through it to mean anything to a controller that
+     * thinks in the robot's coordinates.
+     */
+    function reportTarget(worldPoint: THREE.Vector3): void {
+      targetLocal.copy(worldPoint);
+      content.worldToLocal(targetLocal);
+      targetCbRef.current?.([targetLocal.x, targetLocal.y, 0]);
+    }
+
     /** Anchor the Z-up scene at `at`, facing `viewer`, and stop searching. */
     function placeAt(at: THREE.Vector3, viewer: THREE.Vector3): void {
       // Anchor the point under the pugglenaut's feet rather than the scene
@@ -319,6 +376,7 @@ export default function LabScene({
       placeContent(content, at, yawToFace(at, viewer), pos[0], pos[1]);
       placed = true;
       hitReady = false;
+      // The reticle stays in play: after placement it is the walk-here cursor.
       reticle.visible = false;
       content.visible = true;
     }
@@ -334,15 +392,13 @@ export default function LabScene({
       const refSpace = renderer.xr.getReferenceSpace();
       if (!refSpace) return;
 
-      if (placed) {
-        // A second tap re-arms the search, so the pugglenaut can be moved to
-        // another table without leaving the session.
-        if (selectPending) {
-          selectPending = false;
-          placed = false;
-          content.visible = false;
-        }
-        return;
+      // Re-arm placement when the console asks, so he can be moved to another
+      // surface without leaving the session.
+      if (placed && rePlaceRef.current !== seenNonce) {
+        seenNonce = rePlaceRef.current;
+        placed = false;
+        content.visible = false;
+        targetCbRef.current?.(null);
       }
 
       const viewerPose = frame.getViewerPose(refSpace);
@@ -380,6 +436,16 @@ export default function LabScene({
 
       if (!selectPending) return;
       selectPending = false;
+
+      if (placed) {
+        // Once he is standing on your floor, the reticle stops being a
+        // placement cursor and becomes a "walk here" one. That is the whole
+        // control scheme on a handset: point at the floor and tap, rather than
+        // covering what you are looking at with a thumb pad.
+        if (hitReady) reportTarget(hitPoint);
+        return;
+      }
+
       if (hitReady) {
         // viewerPos was filled only on the fallback path, so read it here.
         const p = viewerPose.transform.position;
@@ -525,6 +591,14 @@ export default function LabScene({
 
       if (xrFrame) updateXR(xrFrame);
 
+      const walkTo = targetRef.current;
+      if (walkTo) {
+        marker.position.set(walkTo[0], walkTo[1], 0.002);
+        marker.visible = true;
+      } else {
+        marker.visible = false;
+      }
+
       if (state) {
         const pos = state.root.pos;
         rig.apply(
@@ -558,11 +632,53 @@ export default function LabScene({
         fpsAt = now;
       }
     }
+    /**
+     * Tap the floor to send him there, outside XR too.
+     *
+     * A tap and not a drag: the threshold is there because a finger that moves
+     * is someone scrolling the page, and hijacking that would make the page
+     * feel broken. Raycast the floor plane rather than the rig, so tapping
+     * empty floor works -- which is the whole gesture.
+     */
+    const raycaster = new THREE.Raycaster();
+    const floorPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const ndc = new THREE.Vector2();
+    const hitOnFloor = new THREE.Vector3();
+    let downAt: { x: number; y: number; t: number } | null = null;
+
+    function onPointerDown(e: PointerEvent): void {
+      downAt = { x: e.clientX, y: e.clientY, t: performance.now() };
+    }
+
+    function onPointerUp(e: PointerEvent): void {
+      const from = downAt;
+      downAt = null;
+      // In a session the tap is the session's; `select` handles it.
+      if (!from || renderer.xr.isPresenting) return;
+      if (Math.hypot(e.clientX - from.x, e.clientY - from.y) > 12) return;
+      if (performance.now() - from.t > 500) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      ndc.set(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+      raycaster.setFromCamera(ndc, camera);
+      if (!raycaster.ray.intersectPlane(floorPlane, hitOnFloor)) return;
+      reportTarget(hitOnFloor);
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+
     renderer.setAnimationLoop(frame);
 
     return () => {
       disposed = true;
       renderer.setAnimationLoop(null);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
       renderer.xr.removeEventListener('sessionend', onSessionEnd);
       enterRef.current = null;
       exitRef.current = null;
@@ -573,6 +689,8 @@ export default function LabScene({
       observer.disconnect();
       unsubscribe();
       rig.dispose();
+      markerGeo.dispose();
+      markerMat.dispose();
       floorGeo.dispose();
       floorMat.dispose();
       grid.geometry.dispose();

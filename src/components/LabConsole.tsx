@@ -7,7 +7,8 @@ import type { DuckLink, DuckState, Skill } from '../lib/duck/link';
 import { createSimLink, loadSimAssets, type SimLink } from '../lib/duck/simLink';
 import type { PolicySlot, SimTelemetry } from '../lib/duck/simProtocol';
 import { spawnSimWorker } from '../lib/duck/simWorkerClient';
-import { loadTree } from '../lib/duck/tree';
+import { loadTree, type Vec3 } from '../lib/duck/tree';
+import { steerToward, yawOf } from '../lib/duck/steer';
 import LabScene from './LabScene';
 
 /**
@@ -104,8 +105,27 @@ export default function LabConsole() {
   const link: DuckLink | null = live ? sim : clip;
 
   const held = useRef(new Set<string>());
-  /** The DOM overlay handed to an AR session, so the pad shows over the camera. */
+  /**
+   * The element handed to an AR session as its `dom-overlay` root.
+   *
+   * Deliberately NOT the pad. A UA promotes the overlay root to a full-screen
+   * layer, so making the pad itself the root threw its corner positioning away
+   * -- the buttons spread across the middle of the viewport -- and made its
+   * `beforexrselect` handler cover every tap on the screen, which swallowed the
+   * tap that places the pugglenaut. This container is inset-zero and
+   * `pointer-events: none`; only the pad inside it takes input, so taps
+   * anywhere else still reach the session.
+   */
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  /** The drive pad itself, which is the only thing that swallows a select. */
   const padRef = useRef<HTMLDivElement | null>(null);
+  /** Which corner the pad sits in. Left-handers and right-handers differ. */
+  const [padSide, setPadSide] = useState<'left' | 'right'>('right');
+  /** Where a tap sent him, in the scene's Z-up frame. Null when driving by hand. */
+  const [walkTo, setWalkTo] = useState<Vec3 | null>(null);
+  const [rePlaceNonce, setRePlaceNonce] = useState(0);
+  const walkToRef = useRef<Vec3 | null>(null);
+  walkToRef.current = walkTo;
   // Read inside the gamepad poll, which must not re-subscribe on every change.
   const seatedRef = useRef(false);
   seatedRef.current = state?.seated ?? false;
@@ -231,6 +251,36 @@ export default function LabConsole() {
   useEffect(() => () => clip?.dispose(), [clip]);
   useEffect(() => () => sim?.dispose(), [sim]);
 
+  /**
+   * Walk to the tapped spot.
+   *
+   * Driven off the link's own state stream rather than a timer, so it steers at
+   * the control rate and cannot drift out of step with the simulation. The
+   * controller itself is pure and lives in `steer.ts`; this is only wiring.
+   */
+  useEffect(() => {
+    if (!link || !running) return;
+    return link.subscribe((s) => {
+      const goal = walkToRef.current;
+      if (!goal) return;
+      // A hand on the controls wins. Clearing the goal rather than merely
+      // ignoring it means he does not lurch back towards a stale target the
+      // moment the key comes up.
+      if (held.current.size > 0) {
+        setWalkTo(null);
+        return;
+      }
+      if (s.activeSkill || s.seated) return;
+      const result = steerToward(s.root.pos, yawOf(s.root.quat), goal);
+      if (result.arrived) {
+        setWalkTo(null);
+        link.stop();
+        return;
+      }
+      link.move(result.twist);
+    });
+  }, [link, running]);
+
   // Powering down has to actually stop the physics, not merely stop drawing
   // it: the worker drives its own clock, so nothing else would. Paused while
   // in playback too -- keeping a compiled simulation warm is worth a message,
@@ -300,6 +350,7 @@ export default function LabConsole() {
   useEffect(() => {
     if (running) return;
     touchPointers.current.clear();
+    setWalkTo(null);
   }, [running]);
 
   /**
@@ -438,8 +489,11 @@ export default function LabConsole() {
             running={running}
             reducedMotion={reduced}
             onFps={setFps}
-            overlayRoot={padRef}
+            overlayRoot={overlayRef}
             onImmersive={setImmersive}
+            onTarget={setWalkTo}
+            target={walkTo}
+            rePlaceNonce={rePlaceNonce}
           />
         ) : (
           <div className="lab-poster">
@@ -459,13 +513,18 @@ export default function LabConsole() {
           {running && fps > 0 ? ` · ${fps} fps` : ''}
         </div>
 
-        {/* The drive pad. Always rendered so an AR session has an overlay root
-            to hand over, but only visible where there is no keyboard -- a
-            coarse pointer, or an XR session. */}
-        <div className="lab-pad" ref={padRef} hidden={!running}>
-          <button
-            type="button"
-            className="lab-pad-key lab-pad-fwd"
+        {/* The overlay layer handed to an AR session. Transparent and
+            click-through; only the pad inside it takes input, so a tap on the
+            floor still reaches the session and places the pugglenaut. */}
+        <div className="lab-overlay" ref={overlayRef}>
+          <div
+            className={`lab-pad lab-pad-${padSide}`}
+            ref={padRef}
+            hidden={!running}
+          >
+            <button
+              type="button"
+              className="lab-pad-key lab-pad-fwd"
             aria-label="Walk forward"
             onPointerDown={touchStart('w')}
             onPointerUp={touchEnd}
@@ -474,9 +533,9 @@ export default function LabConsole() {
           >
             ▲
           </button>
-          <button
-            type="button"
-            className="lab-pad-key lab-pad-left"
+            <button
+              type="button"
+              className="lab-pad-key lab-pad-turn-left"
             aria-label="Turn left"
             onPointerDown={touchStart('a')}
             onPointerUp={touchEnd}
@@ -485,9 +544,9 @@ export default function LabConsole() {
           >
             ◀
           </button>
-          <button
-            type="button"
-            className="lab-pad-key lab-pad-right"
+            <button
+              type="button"
+              className="lab-pad-key lab-pad-turn-right"
             aria-label="Turn right"
             onPointerDown={touchStart('d')}
             onPointerUp={touchEnd}
@@ -496,9 +555,9 @@ export default function LabConsole() {
           >
             ▶
           </button>
-          <button
-            type="button"
-            className="lab-pad-key lab-pad-back"
+            <button
+              type="button"
+              className="lab-pad-key lab-pad-back"
             aria-label="Walk backward"
             onPointerDown={touchStart('s')}
             onPointerUp={touchEnd}
@@ -507,19 +566,48 @@ export default function LabConsole() {
           >
             ▼
           </button>
-          {live ? (
+            {live ? (
+              <button
+                type="button"
+                className="lab-pad-key lab-pad-boop"
+                aria-label="Boop it over"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  sim?.push();
+                }}
+              >
+                boop
+              </button>
+            ) : null}
+
+            {immersive ? (
+              <button
+                type="button"
+                className="lab-pad-replace"
+                aria-label="Place him somewhere else"
+                title="Re-arm placement, then tap a surface"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  setRePlaceNonce((n) => n + 1);
+                }}
+              >
+                {'\u21bb'}
+              </button>
+            ) : null}
+
             <button
               type="button"
-              className="lab-pad-key lab-pad-boop"
-              aria-label="Boop it over"
+              className="lab-pad-swap"
+              aria-label={`Move the pad to the ${padSide === 'right' ? 'left' : 'right'}`}
+              title="Swap which side the pad sits on"
               onPointerDown={(e) => {
                 e.preventDefault();
-                sim?.push();
+                setPadSide((side) => (side === 'right' ? 'left' : 'right'));
               }}
             >
-              boop
+              {padSide === 'right' ? '\u21e4' : '\u21e5'}
             </button>
-          ) : null}
+          </div>
         </div>
       </div>
 
@@ -631,6 +719,7 @@ export default function LabConsole() {
       </div>
 
       <p className="lab-howto">
+        <strong>Tap the floor</strong> and he walks there. Or drive:{' '}
         <kbd>W</kbd>/<kbd>S</kbd> forward and back, <kbd>A</kbd>/<kbd>D</kbd> to
         turn (arrow keys do the same), <kbd>Space</kbd> for the bill
         {live ? (
