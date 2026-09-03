@@ -151,9 +151,26 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     const grid = new THREE.GridHelper(6, 60, 0x8f7a45, 0x8f7a45);
     grid.rotation.x = Math.PI / 2;
     const gridMat = grid.material as THREE.Material;
-    gridMat.opacity = 0.28;
+    gridMat.opacity = 0.42;
     gridMat.transparent = true;
     content.add(grid);
+
+    // A faint solid ground under the wireframe. Thin grid lines alias away at
+    // the grazing angles the chase camera reaches when it drops to follow a
+    // fallen robot, and without them the pugglenaut reads as tumbling through a
+    // void rather than lying on a floor. Unlit and behind everything, so it
+    // says "ground" without competing with the character. Hidden in AR, where
+    // the real floor is already there.
+    const floorGeo = new THREE.PlaneGeometry(12, 12);
+    const floorMat = new THREE.MeshBasicMaterial({
+      color: 0x161226,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.position.z = -0.001; // just below the grid, so the lines stay crisp
+    floor.renderOrder = -1;
+    content.add(floor);
 
     const rig: Rig = createPugglenaut(tree);
     content.add(rig.root);
@@ -370,6 +387,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
       resetContent(content);
       content.visible = true;
       grid.visible = true;
+      floor.visible = true;
       scene.background = sceneBackground;
       // Three.js copies the headset's projection matrix over ours and
       // decomposes its pose into camera.position/quaternion every XR frame,
@@ -421,6 +439,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
           // it. The background goes too, so the clear colour stays fully
           // transparent and passthrough shows through.
           grid.visible = false;
+          floor.visible = false;
           scene.background = null;
           // The hit-test ray rides on the viewer space, so it comes out of the
           // phone or headset and lands wherever it is pointed.
@@ -523,6 +542,8 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
       observer.disconnect();
       unsubscribe();
       rig.dispose();
+      floorGeo.dispose();
+      floorMat.dispose();
       grid.geometry.dispose();
       gridMat.dispose();
       reticleGeo.dispose();

@@ -45,6 +45,24 @@ import xml.etree.ElementTree as ET
 import numpy as np
 from scipy.spatial import ConvexHull
 
+USETHREAD_NOTE = """
+  usethread="false" is load-bearing for the browser, not a tuning knob.
+  MuJoCo's compiler parallelises mesh processing, and this model has nine
+  collision meshes, so mj_loadXML spawns six pthreads. In wasm a pthread is a
+  Worker sharing a SharedArrayBuffer, and SharedArrayBuffer needs the page to
+  be cross-origin isolated -- COOP/COEP headers GitHub Pages cannot send.
+  Without this attribute the compile dies with "thread constructor failed:
+  Resource temporarily unavailable" in every browser and works fine in node,
+  which is the worst possible way for it to fail.
+
+  It costs nothing. Compiling single-threaded is the same 0.45 s, and the
+  resulting model is bit-identical: every keyframe, every mass and inertia,
+  every mesh vertex and face, and all 495,372 values of the collision BVH
+  compare equal against a compile with threads.
+
+  Emitted by scripts/bake-sim-model.py; asserted by src/lib/duck/sim-model.test.ts.
+"""
+
 # Geom classes that take part in contact. Everything else in the MJCF is
 # `visual`, which the defaults mark non-colliding.
 COLLIDING_CLASSES = {"collision", "self_collision_only"}
@@ -126,6 +144,25 @@ def build(src: pathlib.Path, out: pathlib.Path) -> dict:
     # Materials only existed for the visual geoms.
     for material in list(asset.findall("material")):
         asset.remove(material)
+
+    # Single-threaded compilation. This is load-bearing for the browser, not a
+    # tuning knob: `mj_loadXML` otherwise spawns pthreads to compile the nine
+    # collision meshes, a wasm pthread needs SharedArrayBuffer, and that needs
+    # COOP/COEP headers GitHub Pages cannot send. Threaded compilation works
+    # perfectly under node and dies in every browser with "thread constructor
+    # failed", which is the worst possible way for this to fail -- every local
+    # check passes and only the deployed site is broken.
+    #
+    # It costs nothing: compile time is unchanged at about 0.45 s and the
+    # resulting model is bit-identical, keyframes, masses, inertias, mesh data
+    # and BVH included. `sim-model.test.ts` asserts the attribute survives.
+    compiler = root.find("compiler")
+    if compiler is None:
+        compiler = ET.SubElement(root, "compiler")
+    compiler.set("usethread", "false")
+    # Say it in the asset too, so someone reading the XML on its own is not
+    # tempted to tidy the attribute away.
+    root.insert(0, ET.Comment(USETHREAD_NOTE))
 
     tree.write(out / "robot_reduced.xml")
 
