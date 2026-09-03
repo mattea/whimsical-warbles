@@ -85,7 +85,8 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
   /** Weight of the pose a finished skill left behind, easing 1 -> 0. */
   let blendOut = 0;
   const holdJoints = new Float32Array(JOINT_COUNT);
-  let holdTilt: Quat = [1, 0, 0, 0];
+  /** The full orientation a finished skill ended in, to ease out of. */
+  let holdQuat: Quat = [1, 0, 0, 0];
   let holdZ = tree.trunkHeight;
 
   const joints = new Float32Array(JOINT_COUNT);
@@ -93,28 +94,31 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
   const gravity: Vec3 = [0, 0, -1];
   const velocity: Vec3 = [0, 0, 0];
   const pathAt: Vec3 = [0, 0, 0];
-  /** Trunk roll/pitch from the clip, with heading excluded. */
+  /** Trunk roll/pitch from a gait clip, with heading excluded. */
   let tilt: Quat = [1, 0, 0, 0];
+  /**
+   * The trunk's full orientation, as emitted.
+   *
+   * Locomotion builds it from the integrated heading and the gait's tilt; a
+   * skill builds it from the orientation it started in and the clip's recorded
+   * relative rotation. Keeping one field for both means `emit` never has to
+   * know which is driving.
+   */
+  let orientation: Quat = [1, 0, 0, 0];
+  /** The orientation the active skill began from. */
+  let skillQuat: Quat = [1, 0, 0, 0];
+  /** The orientation the sit began from, so the held seat keeps its heading. */
+  let seatedQuat: Quat = [1, 0, 0, 0];
+  const relRot: Quat = [1, 0, 0, 0];
 
   function emit(): void {
-    const half = yaw / 2;
-    const heading: Quat = [Math.cos(half), 0, 0, Math.sin(half)];
+    const quat = orientation;
 
-    // The commanded body lean rides on top of the recorded tilt, so `pose()`
-    // still moves the trunk even though no clip was baked leaning.
-    const cr = Math.cos(body.roll / 2);
-    const sr = Math.sin(body.roll / 2);
-    const cp = Math.cos(body.pitch / 2);
-    const sp = Math.sin(body.pitch / 2);
-    const lean: Quat = [cr * cp, sr * cp, cr * sp, -sr * sp];
-    const oriented = quatMul(tilt, lean);
-    // Heading is integrated from the achieved turn rate; roll and pitch come
-    // from the recording. Composing them is what makes a roulade actually roll.
-    const quat = quatMul(heading, oriented);
-
-    // Projected gravity, read off the same orientation the renderer uses --
-    // so during a roll the telemetry swings the way a real IMU would.
-    const [w, x, y, z] = oriented;
+    // Projected gravity, read off the same orientation the renderer uses -- so
+    // through a roll the telemetry swings the way a real IMU would. Derived
+    // from the full orientation, which is heading-invariant for this purpose:
+    // gravity in the trunk frame does not depend on which way you face.
+    const [w, x, y, z] = quat;
     gravity[0] = -2 * (x * z - w * y);
     gravity[1] = -2 * (y * z + w * x);
     gravity[2] = -(1 - 2 * (x * x + y * y));
@@ -137,6 +141,7 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     skillElapsed = 0;
     skillStart = [pos[0], pos[1], pos[2]];
     skillYaw = yaw;
+    skillQuat = [orientation[0], orientation[1], orientation[2], orientation[3]];
     blendOut = 0;
     wanted = { vx: 0, vy: 0, vyaw: 0 };
     twist = { vx: 0, vy: 0, vyaw: 0 };
@@ -145,7 +150,7 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
   /** Remember the pose a finished skill left behind, so handing back can ease. */
   function holdPose(): void {
     holdJoints.set(joints);
-    holdTilt = [tilt[0], tilt[1], tilt[2], tilt[3]];
+    holdQuat = [orientation[0], orientation[1], orientation[2], orientation[3]];
     holdZ = pos[2];
     blendOut = 1;
   }
@@ -163,8 +168,10 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
       const finished = skill;
       skill = null;
       skillElapsed = 0;
-      if (finished === 'sit') seated = true;
-      else if (finished === 'stand') seated = false;
+      if (finished === 'sit') {
+        seated = true;
+        seatedQuat = [skillQuat[0], skillQuat[1], skillQuat[2], skillQuat[3]];
+      } else if (finished === 'stand') seated = false;
       holdPose();
       if (pending) {
         const next = pending;
@@ -179,7 +186,11 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     // final instant back towards the pose it started from.
     const p = clamp(skillElapsed / clip.duration, 0, 1);
     sampleOnce(clip.joints, clip.frames, p, joints);
-    sampleQuatOnce(clip.tilt, clip.frames, p, tilt);
+    // The recorded rotation is relative to the clip's first frame, so composing
+    // it onto the orientation the skill began from reproduces the simulation
+    // exactly, under whatever direction the pugglenaut was already facing.
+    sampleQuatOnce(clip.rot, clip.frames, p, relRot);
+    orientation = quatMul(skillQuat, relRot);
 
     // The recorded trunk path, replayed under whatever heading the skill began
     // with. This is what carries a roulade half a metre forward. The height is
@@ -204,7 +215,8 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     const sit = clips.skills.get('sit');
     if (!sit) return;
     sampleOnce(sit.joints, sit.frames, 1, joints);
-    sampleQuatOnce(sit.tilt, sit.frames, 1, tilt);
+    sampleQuatOnce(sit.rot, sit.frames, 1, relRot);
+    orientation = quatMul(seatedQuat, relRot);
     samplePath(sit.rootPath, sit.frames, 1, pathAt);
     pos[2] = pathAt[2];
   }
@@ -262,25 +274,15 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     pos[2] = tree.trunkHeight + blendBob(clips.gaits, cmd, phase) + body.z;
 
     // Ease out of the pose a skill left behind, rather than snapping to stand.
+    // The orientation is blended after it is composed, further down.
+    let blendT = 0;
     if (blendOut > 0) {
       blendOut = Math.max(0, blendOut - step / SKILL_BLEND_OUT);
-      const t = blendOut;
+      blendT = blendOut;
       for (let j = 0; j < JOINT_COUNT; j++) {
-        joints[j] = joints[j] * (1 - t) + holdJoints[j] * t;
+        joints[j] = joints[j] * (1 - blendT) + holdJoints[j] * blendT;
       }
-      pos[2] = pos[2] * (1 - t) + holdZ * t;
-      let dot = 0;
-      for (let i = 0; i < 4; i++) dot += tilt[i] * holdTilt[i];
-      const sign = dot < 0 ? -1 : 1;
-      const mixed: number[] = [];
-      let norm = 0;
-      for (let i = 0; i < 4; i++) {
-        const v = tilt[i] * (1 - t) + sign * holdTilt[i] * t;
-        mixed.push(v);
-        norm += v * v;
-      }
-      norm = Math.sqrt(norm) || 1;
-      tilt = [mixed[0] / norm, mixed[1] / norm, mixed[2] / norm, mixed[3] / norm];
+      pos[2] = pos[2] * (1 - blendT) + holdZ * blendT;
     }
 
     // Head targets ride over the blended pose. obs.rs is explicit that head
@@ -307,6 +309,36 @@ export function createClipLink(tree: DuckTree, clips: ClipSet): DuckLink {
     gyro[1] = 0;
     gyro[2] = (yaw - lastYaw) / step;
     lastYaw = yaw;
+
+    // Heading is integrated from the achieved turn rate; roll and pitch come
+    // from the gait clip; the commanded body lean rides on top, so `pose()`
+    // still moves the trunk even though no clip was baked leaning.
+    const half = yaw / 2;
+    const heading: Quat = [Math.cos(half), 0, 0, Math.sin(half)];
+    const cr = Math.cos(body.roll / 2);
+    const sr = Math.sin(body.roll / 2);
+    const cp = Math.cos(body.pitch / 2);
+    const sp = Math.sin(body.pitch / 2);
+    const lean: Quat = [cr * cp, sr * cp, cr * sp, -sr * sp];
+    orientation = quatMul(heading, quatMul(tilt, lean));
+
+    // Ease the orientation out of whatever a finished skill left, so a robot
+    // that ends a roulade on its side rights itself over a third of a second
+    // instead of snapping upright between two frames.
+    if (blendT > 0) {
+      let dot = 0;
+      for (let i = 0; i < 4; i++) dot += orientation[i] * holdQuat[i];
+      const sign = dot < 0 ? -1 : 1;
+      const mixed: number[] = [0, 0, 0, 0];
+      let norm = 0;
+      for (let i = 0; i < 4; i++) {
+        const v = orientation[i] * (1 - blendT) + sign * holdQuat[i] * blendT;
+        mixed[i] = v;
+        norm += v * v;
+      }
+      norm = Math.sqrt(norm) || 1;
+      orientation = [mixed[0] / norm, mixed[1] / norm, mixed[2] / norm, mixed[3] / norm];
+    }
 
     emit();
   }

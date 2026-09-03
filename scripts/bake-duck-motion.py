@@ -182,6 +182,21 @@ def yaw_of(quat) -> float:
     return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
 
+def quat_conj(q) -> np.ndarray:
+    return np.array([q[0], -q[1], -q[2], -q[3]])
+
+
+def quat_mul(a, b) -> np.ndarray:
+    aw, ax, ay, az = a
+    bw, bx, by, bz = b
+    return np.array([
+        aw * bw - ax * bx - ay * by - az * bz,
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+    ])
+
+
 def tilt_of(quat) -> np.ndarray:
     """The trunk's orientation with its heading removed.
 
@@ -209,16 +224,19 @@ class Recording:
         self.pos = []
         self.yaw = []
         self.tilt = []
+        self.quat = []
 
     def sample(self, data):
         self.joints.append(data.qpos[7:21].copy())
         self.pos.append([float(data.qpos[0]), float(data.qpos[1]), float(data.qpos[2])])
         self.yaw.append(yaw_of(data.qpos[3:7]))
         self.tilt.append(tilt_of(data.qpos[3:7]))
+        self.quat.append(np.array([float(v) for v in data.qpos[3:7]]))
 
     def arrays(self):
         return (np.array(self.joints), np.array(self.pos),
-                np.unwrap(np.array(self.yaw)), np.array(self.tilt))
+                np.unwrap(np.array(self.yaw)), np.array(self.tilt),
+                np.array(self.quat))
 
 
 def drive(model, session, cmd_at, ticks, action_scale=ACTION_SCALE, data=None,
@@ -276,7 +294,7 @@ def gait_period(joints: np.ndarray) -> int:
 
 def achieved(rec: Recording, period: int) -> tuple:
     """Mean body-frame velocity over the captured window."""
-    _, pos, yaw, _ = rec.arrays()
+    _, pos, yaw, _, _ = rec.arrays()
     span = period * CONTROL_DT
     dx = pos[period - 1][0] - pos[0][0]
     dy = pos[period - 1][1] - pos[0][1]
@@ -303,7 +321,7 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
             cmd = np.array([vx, 0.0, vyaw])
             rec, _, _ = drive(model, walk, lambda _t: cmd,
                               SETTLE_TICKS + PERIOD_WINDOW, record_from=SETTLE_TICKS)
-            joints, pos, _, tilt = rec.arrays()
+            joints, pos, _, tilt, _ = rec.arrays()
             period = gait_period(joints)
             vel = achieved(rec, period)
             z = pos[:period, 2]
@@ -345,9 +363,33 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
         # the trunk passes through +-90 degrees of pitch, where yaw is
         # gimbal-locked and unwrapping it produces garbage -- and a forward roll
         # does not change which way the robot faces anyway.
-        joints, pos, yaw, tilt = rec.arrays()
+        joints, pos, yaw, tilt, quat = rec.arrays()
         cut = trim(rec)
-        joints, pos, yaw, tilt = joints[:cut], pos[:cut], yaw[:cut], tilt[:cut]
+        joints, pos, yaw = joints[:cut], pos[:cut], yaw[:cut]
+        quat = quat[:cut]
+
+        # Orientation is baked as the rotation RELATIVE to the first frame, and
+        # not decomposed into heading plus tilt.
+        #
+        # The decomposition is what made the roulade look chaotic. Reconstructing
+        # `Rz(heading) * tilt` in the browser only reproduces the simulation if
+        # the heading used is the one that was stripped out -- and playback
+        # freezes the heading when the skill starts, because a skill is replayed
+        # under whatever direction the pugglenaut happens to be facing. Any drift
+        # in the simulation's own extracted yaw therefore lands as a spurious
+        # spin about the vertical axis. Measured through this roll, the extracted
+        # yaw sweeps 359 degrees (a forward roll passes through +-90 of pitch,
+        # where yaw is degenerate), so the reconstruction was whipping the robot
+        # around by up to 180 degrees mid-tumble.
+        #
+        # A relative quaternion has no such failure mode: there is nothing to
+        # extract, nothing to re-apply, and no singularity.
+        rel = np.array([quat_mul(quat_conj(quat[0]), q) for q in quat])
+        # Keep the shorter arc between consecutive frames so the browser's
+        # normalized lerp does not take the long way round.
+        for i in range(1, len(rel)):
+            if float(np.dot(rel[i - 1], rel[i])) < 0.0:
+                rel[i] = -rel[i]
         # Path relative to the start, rotated into the starting heading, so the
         # browser can replay it under whatever heading the pugglenaut has.
         y0 = yaw[0]
@@ -370,7 +412,7 @@ def bake_clips(model, duck_root: pathlib.Path) -> dict:
             "frames": len(joints),
             "joints": quantize(joints),
             "rootPath": quantize(path),
-            "tilt": quantize(tilt),
+            "rot": quantize(rel),
             "duration": len(joints) * CONTROL_DT,
         })
         print(f"  skill {name}: {len(joints)}/{ticks} frames "
