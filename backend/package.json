@@ -9,7 +9,7 @@
     "db:init": "wrangler d1 execute pugglenaut --file schema.sql"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241106.0",
-    "wrangler": "^3.86.0"
+    "@cloudflare/workers-types": "^5.20260903.1",
+    "wrangler": "^4.128.0"
   }
 }
