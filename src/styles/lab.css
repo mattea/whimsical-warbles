@@ -139,3 +139,105 @@
   font-size: 0.85rem;
   opacity: 0.72;
 }
+
+/* WebXR entry. Present only when navigator.xr reports the mode supported, so
+   this block never renders on a desktop browser. Pinned to the stage's bottom
+   edge rather than sitting in .lab-controls: on a phone the stage is what you
+   are looking at, and AR is a phone feature. */
+.lab-xr {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lab-xr-enter {
+  padding: 6px 12px;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f7f4ea;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.lab-xr-enter:focus-visible {
+  outline: 2px solid var(--rp-color-accent, #ffcf33);
+  outline-offset: 2px;
+}
+
+.lab-xr-hint {
+  color: #f7f4ea;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+/* The playback / live switch. Its own row rather than another button in
+   .lab-controls, because it needs a sentence of explanation next to it: live
+   mode is a multi-megabyte download and the price belongs on the label, not
+   in a tooltip nobody opens. */
+.lab-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+}
+
+.lab-mode-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.lab-mode {
+  padding: 6px 12px;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  background: var(--rp-color-surface-raised, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.lab-mode:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.lab-mode:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left-width: 1px;
+}
+
+.lab-mode[aria-pressed='true'] {
+  background: var(--rp-color-accent, #ffcf33);
+  color: #20202a;
+  font-weight: 700;
+}
+
+.lab-mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.lab-mode:focus-visible {
+  outline: 2px solid var(--rp-color-accent, #ffcf33);
+  outline-offset: 2px;
+}
+
+.lab-mode-hint {
+  flex: 1 1 22ch;
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.78;
+}
+
+/* Live gets its own colour so the badge reads at a glance as a different
+   thing from playback, not merely a different word. */
+.lab-badge[data-mode='live'] {
+  color: #7ce4a8;
+}

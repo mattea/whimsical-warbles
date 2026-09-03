@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import clipsJson from '../../../public/duck/clips.json';
 import { JOINT_COUNT } from './tree';
-import { blendGaits, blendVelocity, decodeClips, pickGaits, sampleClip } from './clips';
+import {
+  blendGaits,
+  blendVelocity,
+  decodeClips,
+  pickGaits,
+  sampleClip,
+  sampleOnce,
+} from './clips';
 
 const clips = decodeClips(clipsJson);
 
@@ -178,5 +185,68 @@ describe('blendVelocity', () => {
     const v: [number, number, number] = [0, 0, 0];
     blendVelocity(clips.gaits, [0, 0, -2], v);
     expect(v[2]).toBeLessThan(-0.5);
+  });
+});
+
+describe('sampleOnce', () => {
+  const frames = 4;
+  const joints = new Float32Array(frames * JOINT_COUNT);
+  for (let f = 0; f < frames; f++) joints[f * JOINT_COUNT] = f;
+  const out = new Float32Array(JOINT_COUNT);
+
+  it('ends on the last frame instead of wrapping to the first', () => {
+    // The bug this exists to prevent: `sampleClip` wraps, because a gait is a
+    // loop. Using it for a one-shot made the end of the sit blend back towards
+    // the standing pose it began from, which held the seated trunk at seated
+    // height with standing legs -- six centimetres of leg through the floor.
+    sampleOnce(joints, frames, 1, out);
+    expect(out[0]).toBeCloseTo(frames - 1, 6);
+    sampleClip(joints, frames, 0.999999, out);
+    expect(out[0]).toBeLessThan(0.01); // wraps back to frame 0, as designed
+  });
+
+  it('clamps outside 0..1 rather than wrapping', () => {
+    sampleOnce(joints, frames, 1.5, out);
+    expect(out[0]).toBeCloseTo(frames - 1, 6);
+    sampleOnce(joints, frames, -0.5, out);
+    expect(out[0]).toBeCloseTo(0, 6);
+  });
+
+  it('interpolates in between', () => {
+    sampleOnce(joints, frames, 0.5, out);
+    expect(out[0]).toBeCloseTo(1.5, 6);
+  });
+});
+
+describe('skill clips', () => {
+  it('are trimmed to the part that actually moves', () => {
+    // Captured over a fixed window, but the kicks finish in half a second and
+    // then hold; untrimmed they froze the console for the remaining 2.5 s.
+    for (const name of ['kick_left', 'kick_right', 'sit', 'stand']) {
+      expect(clips.skills.get(name)!.duration, name).toBeLessThan(2.0);
+    }
+    for (const [name, clip] of clips.skills) {
+      expect(clip.duration, name).toBeGreaterThan(0.5);
+    }
+  });
+
+  it('record an absolute trunk height, not an offset', () => {
+    // Every skill's path z should be a plausible standing-ish trunk height,
+    // which an offset-from-start encoding would not be (it starts at zero).
+    for (const [name, clip] of clips.skills) {
+      const first = clip.rootPath[2];
+      expect(first, name).toBeGreaterThan(0.02);
+      expect(first, name).toBeLessThan(0.2);
+    }
+  });
+
+  it('start the stand-up from a seated trunk height', () => {
+    const stand = clips.skills.get('stand')!;
+    const sit = clips.skills.get('sit')!;
+    const sitEnd = sit.rootPath[(sit.frames - 1) * 3 + 2];
+    // The rise is baked as a continuation of the sit, so it must begin near
+    // where the sit left off rather than at standing height.
+    expect(stand.rootPath[2]).toBeCloseTo(sitEnd, 2);
+    expect(stand.rootPath[(stand.frames - 1) * 3 + 2]).toBeGreaterThan(sitEnd + 0.03);
   });
 });

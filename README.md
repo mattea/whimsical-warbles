@@ -42,12 +42,23 @@ Pages (`src/pages/`):
   `localStorage`, with a global leaderboard when the backend is live.
 - **`/lab`** — "Waddle Lab": drive the pugglenaut with the real gait of
   [Microduck](https://github.com/pollen-robotics/microduck), a 25 cm bipedal
-  robot. Joint motion is baked offline from the ONNX policies that ship on that
-  robot and replayed on its exact skeleton by `src/lib/duck/`. `W`/`S` drive,
-  `A`/`D` turn, and the skills are the robot's own — ground pick, roulade, the
-  two kicks, and a sit/stand posture toggle. The 3D rig is procedural Three.js
-  (`src/lib/duck/pugglenaut.ts`) — no mesh assets. The island is
-  `client:visible`, and nothing animates until you power it on.
+  robot. `W`/`S` drive, `A`/`D` turn, and the skills are the robot's own —
+  ground pick, roulade, the two kicks, and a sit/stand posture toggle. The 3D
+  rig is procedural Three.js (`src/lib/duck/pugglenaut.ts`) — no mesh assets.
+  The island is `client:visible`, and nothing animates until you power it on.
+  It runs in two modes:
+  - **Playback** (default, ~90 KB) — motion baked offline from the ONNX
+    policies that ship on the robot, replayed on its exact skeleton and blended
+    to follow your command. It cannot fall over: there is no physics here, only
+    a recording.
+  - **Live** (opt-in, ~4 MB) — real MuJoCo compiled to WebAssembly, stepping
+    the actual robot model in a Web Worker, with the shipped policy choosing
+    joint targets fifty times a second. Nothing is a recording. Shove it and it
+    falls over, then switches to the stand-up policy and gets itself back up.
+
+  It is also viewable in **AR** on a phone or headset, at real 25 cm scale.
+  See [`docs/superpowers/specs/`](./docs/superpowers/specs/) for the design, and
+  for why driving *real* hardware is blocked on transport rather than effort.
 - **`/guestbook`** — sign-the-wall guestbook (backend-backed; a read-only sample
   wall in fallback mode).
 - **`/contact`** — a "Signal" form that delivers a message (backend-backed; a
@@ -131,19 +142,45 @@ uv run --no-project --with mujoco --with onnxruntime --with numpy \
     --microduck ../microduck --microduck-rl ../microduck_rl
 ```
 
-That writes three things:
+That writes:
 
 | file | what |
 | --- | --- |
 | `public/duck/tree.json` | the kinematic tree — link offsets, joint limits, home pose |
 | `public/duck/clips.json` | 12 velocity-grid gaits plus 6 skills |
 | `src/lib/duck/fk-golden.json` | MuJoCo's own body transforms, as a test fixture |
+| `src/lib/duck/obs-golden.json` | observations, holding the TS builder to Python |
+| `src/lib/duck/policy-golden.json` | `obs -> action` pairs from real onnxruntime |
+
+Two further scripts feed the live simulator, both also developer-only:
+
+```bash
+# the browser-sized physics model: 23 MB of STL becomes 348 KB gzipped
+uv run --no-project --with mujoco --with numpy --with scipy \
+    scripts/bake-sim-model.py --microduck-rl ../microduck_rl
+
+# policy weights as a flat float32 blob, so no inference runtime has to ship
+uv run --no-project --with onnx --with numpy \
+    scripts/bake-policy-weights.py --microduck ../microduck
+```
+| `src/lib/duck/obs-golden.json` | 20 observation inputs and the 61 floats Python builds from them |
+| `src/lib/duck/policy-golden.json` | 8 `obs → action` pairs from `alpha_walking.onnx` |
+| `src/lib/duck/alpha_walking.onnx` | that policy, copied so the golden test can run the real graph |
 
 Every number in the first is extracted from the MJCF rather than transcribed,
 because a wrong link offset does not fail loudly — it produces a plausible
 pugglenaut that walks wrong. `src/lib/duck/fk.test.ts` holds the TypeScript
 forward kinematics to MuJoCo's answer to six decimals, which is what pins the
 joint order and rotation conventions.
+
+The last three exist for the same reason one step further up. `observation.ts`
+rebuilds Microduck's 61-slot observation in TypeScript, and `obs.rs` warns that
+a misplaced block there does not fail loudly either. So
+`src/lib/duck/observation.test.ts` holds the TypeScript builder to Python's
+answer slot by slot, and `src/lib/duck/policy-golden.test.ts` runs the shipped
+graph under `onnxruntime-web` and holds it to the actions desktop
+`onnxruntime` gave for the same observations — which is what makes the baked
+motion and a future live simulation the same robot.
 
 #### What the bake has to get right
 
@@ -165,7 +202,26 @@ them wrong produces motion that looks plausible and is wrong:
   `robotd/src/control.rs`.
 - **Clips must loop on a whole gait cycle.** The period is found per clip by
   autocorrelation on the leg joints rather than assumed, because a fixed window
-  leaves a visible hitch at every loop.
+  leaves a visible hitch at every loop. Skills are the opposite -- one-shots,
+  which must be sampled *clamped*. Sampling one with the looping sampler blends
+  its last instant back towards its first frame, which is what put the seated
+  pugglenaut's legs six centimetres through the floor.
+- **Skills need trimming.** Captured over a fixed window, but both kicks finish
+  in half a second and then hold a pose for another two and a half, which reads
+  as the robot freezing. Each clip is cut a short settle after the last frame
+  that actually moves.
+
+And two things the live simulator depends on:
+
+- **The model must compile single-threaded.** `mj_loadXML` otherwise spawns
+  pthreads, which need `SharedArrayBuffer`, which needs COOP/COEP headers
+  GitHub Pages cannot send -- so it works under Node and dies in every browser.
+  `usethread="false"` costs nothing (the compiled model is bit-identical) and
+  `src/lib/duck/sim-model.test.ts` asserts it survives a re-bake.
+- **The walking policy cannot get up.** From a fallen state it stays down
+  indefinitely; of the nine shipped policies only `alpha_stand` recovers. So the
+  simulator watches projected gravity -- observation slot 5, a signal the real
+  robot produces too -- and switches policies on a fall.
 
 The site build never runs the bake and does not depend on those checkouts.
 Both upstream repos are Apache 2.0; their 3D models are CC BY-SA-NC, and this

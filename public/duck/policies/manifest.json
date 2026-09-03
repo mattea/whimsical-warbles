@@ -1,0 +1,97 @@
+{
+ "layout": [
+  "obs_normalizer._mean",
+  "onnx::Div_24",
+  "mlp.0.weight",
+  "mlp.0.bias",
+  "mlp.2.weight",
+  "mlp.2.bias",
+  "mlp.4.weight",
+  "mlp.4.bias",
+  "mlp.6.weight",
+  "mlp.6.bias"
+ ],
+ "shapes": {
+  "obs_normalizer._mean": [
+   1,
+   61
+  ],
+  "onnx::Div_24": [
+   1,
+   61
+  ],
+  "mlp.0.weight": [
+   512,
+   61
+  ],
+  "mlp.0.bias": [
+   512
+  ],
+  "mlp.2.weight": [
+   256,
+   512
+  ],
+  "mlp.2.bias": [
+   256
+  ],
+  "mlp.4.weight": [
+   128,
+   256
+  ],
+  "mlp.4.bias": [
+   128
+  ],
+  "mlp.6.weight": [
+   14,
+   128
+  ],
+  "mlp.6.bias": [
+   14
+  ]
+ },
+ "dtype": "float32-le",
+ "policies": {
+  "walk": {
+   "source": "alpha_walking.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": true
+  },
+  "stand": {
+   "source": "alpha_stand.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": true
+  },
+  "sitstand": {
+   "source": "alpha_sitstand.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "ground_pick": {
+   "source": "alpha_ground_pick.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "kick_left": {
+   "source": "ball_kick_left.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "kick_right": {
+   "source": "ball_kick_right.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  },
+  "roulade": {
+   "source": "roulade.onnx",
+   "params": 197896,
+   "bytes": 791584,
+   "eager": false
+  }
+ }
+}
