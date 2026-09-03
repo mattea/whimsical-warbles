@@ -177,3 +177,67 @@
   font-size: 0.78rem;
   opacity: 0.85;
 }
+
+/* The playback / live switch. Its own row rather than another button in
+   .lab-controls, because it needs a sentence of explanation next to it: live
+   mode is a multi-megabyte download and the price belongs on the label, not
+   in a tooltip nobody opens. */
+.lab-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+}
+
+.lab-mode-buttons {
+  display: flex;
+  gap: 0;
+}
+
+.lab-mode {
+  padding: 6px 12px;
+  border: 2px solid var(--rp-color-border, #8f7a45);
+  background: var(--rp-color-surface-raised, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.lab-mode:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.lab-mode:last-child {
+  border-radius: 0 4px 4px 0;
+  border-left-width: 1px;
+}
+
+.lab-mode[aria-pressed='true'] {
+  background: var(--rp-color-accent, #ffcf33);
+  color: #20202a;
+  font-weight: 700;
+}
+
+.lab-mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.lab-mode:focus-visible {
+  outline: 2px solid var(--rp-color-accent, #ffcf33);
+  outline-offset: 2px;
+}
+
+.lab-mode-hint {
+  flex: 1 1 22ch;
+  margin: 0;
+  font-size: 0.82rem;
+  opacity: 0.78;
+}
+
+/* Live gets its own colour so the badge reads at a glance as a different
+   thing from playback, not merely a different word. */
+.lab-badge[data-mode='live'] {
+  color: #7ce4a8;
+}
