@@ -421,3 +421,78 @@ describe('handing back from a skill', () => {
     expect(biggest).toBeLessThan(0.15);
   });
 });
+
+describe('skill orientation is smooth, not whipped', () => {
+  /** Angle between two unit quaternions, in degrees. */
+  const between = (a: readonly number[], b: readonly number[]) => {
+    let dot = 0;
+    for (let i = 0; i < 4; i++) dot += a[i] * b[i];
+    return (2 * Math.acos(Math.min(1, Math.abs(dot))) * 180) / Math.PI;
+  };
+
+  it('never jumps the trunk between consecutive ticks of a roulade', () => {
+    // The regression this locks. Orientation used to be baked as a
+    // heading-stripped tilt and recomposed with a heading frozen at skill
+    // start. A forward roll passes through the pitch singularity, so the
+    // simulation's extracted yaw sweeps a full turn -- measured at 359 degrees
+    // -- and every bit of that drift landed as a spurious spin about the
+    // vertical axis, up to 180 degrees of it, mid-tumble. That is what made the
+    // roulade look chaotic next to the live simulator's version of the same
+    // motion.
+    const { link, seen } = harness();
+    link.do('roulade');
+    link.tick(CONTROL_DT);
+    let previous = [...seen.state!.root.quat];
+    let worst = 0;
+    const ticks = Math.round(clips.skills.get('roulade')!.duration / CONTROL_DT);
+    for (let i = 1; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      const now = [...seen.state!.root.quat];
+      worst = Math.max(worst, between(previous, now));
+      previous = now;
+    }
+    // A 2.8 s roll at 50 Hz turns a few degrees per tick at most.
+    expect(worst).toBeLessThan(15);
+  });
+
+  it('still rolls all the way over', () => {
+    // Smoothness must not have been bought by flattening the motion.
+    const { link, seen } = harness();
+    link.do('roulade');
+    let lowest = Infinity;
+    const ticks = Math.round(clips.skills.get('roulade')!.duration / CONTROL_DT);
+    for (let i = 0; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      lowest = Math.min(lowest, -seen.state!.gravity[2]);
+    }
+    expect(lowest).toBeLessThan(-0.5);
+  });
+
+  it('replays a skill under the heading the pugglenaut already had', () => {
+    // Turn, then kick. The kick must play out facing the new direction rather
+    // than snapping back to where the clip was recorded.
+    const { link, seen } = harness();
+    link.move({ vx: 0, vy: 0, vyaw: 2.0 });
+    advance(link, 1.2);
+    const facing = [...seen.state!.root.quat];
+    link.move({ vx: 0, vy: 0, vyaw: 0 });
+    advance(link, 0.4);
+    link.do('kick_left');
+    link.tick(CONTROL_DT);
+    // A kick barely rotates the trunk, so the first frame should still be
+    // pointing where it was pointing.
+    expect(between(facing, [...seen.state!.root.quat])).toBeLessThan(20);
+  });
+
+  it('emits unit quaternions throughout every skill', () => {
+    for (const [name, clip] of clips.skills) {
+      const { link, seen } = harness();
+      link.do(name as never);
+      const ticks = Math.round(clip.duration / CONTROL_DT);
+      for (let i = 0; i < ticks; i++) {
+        link.tick(CONTROL_DT);
+        expect(Math.hypot(...seen.state!.root.quat), name).toBeCloseTo(1, 5);
+      }
+    }
+  });
+});

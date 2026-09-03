@@ -38,7 +38,19 @@ export interface SkillClip {
   joints: Float32Array;
   /** frames * 3 trunk displacement from the start, in the starting body frame. */
   rootPath: Float32Array;
-  tilt: Float32Array;
+  /**
+   * frames * 4 trunk rotations RELATIVE to the clip's first frame.
+   *
+   * Not a heading-plus-tilt decomposition, which is what gaits use. A skill is
+   * replayed under whatever direction the pugglenaut is already facing, so the
+   * heading is frozen when it starts -- and recomposing a stripped heading with
+   * a frozen one turns any drift in the simulation's extracted yaw into a
+   * spurious spin. Through a roulade that yaw sweeps a full turn, because a
+   * forward roll passes through the pitch singularity, and the reconstruction
+   * was throwing the robot around by up to 180 degrees. A relative quaternion
+   * has nothing to extract and no singularity.
+   */
+  rot: Float32Array;
   duration: number;
 }
 
@@ -55,7 +67,8 @@ interface RawClip {
   joints: number[];
   rootDz?: number[];
   rootPath?: number[];
-  tilt: number[];
+  rot?: number[];
+  tilt?: number[];
   cycleTime?: number;
   duration?: number;
 }
@@ -82,7 +95,7 @@ export function decodeClips(json: unknown): ClipSet {
     frames: c.frames,
     joints: dequantize(c.joints, scale),
     rootDz: dequantize(c.rootDz as number[], scale),
-    tilt: dequantize(c.tilt, scale),
+    tilt: dequantize(c.tilt as number[], scale),
     cycleTime: c.cycleTime as number,
   }));
 
@@ -93,7 +106,7 @@ export function decodeClips(json: unknown): ClipSet {
       frames: c.frames,
       joints: dequantize(c.joints, scale),
       rootPath: dequantize(c.rootPath as number[], scale),
-      tilt: dequantize(c.tilt, scale),
+      rot: dequantize(c.rot as number[], scale),
       duration: c.duration as number,
     });
   }
