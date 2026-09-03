@@ -486,7 +486,7 @@ export default function DoodlePad() {
       </div>
 
       <p className="pg-doodle-note">
-        <span aria-hidden="true">💾</span>
+        <span aria-hidden="true">💾</span>{' '}
         Saved locally in this browser (<code>pugglenaut-doodle</code>) — your doodle survives a
         refresh. It never leaves your device.
       </p>
