@@ -23,7 +23,7 @@ import {
 } from './observation';
 import { CONTROL_DT, type BodyPose, type HeadPose, type Skill, type Twist } from './link';
 import type { PolicySlot } from './simProtocol';
-import type { Quat, Vec3 } from './tree';
+import type { Vec3 } from './tree';
 
 const ZERO_TWIST: Twist = { vx: 0, vy: 0, vyaw: 0 };
 const ZERO_HEAD: HeadPose = { neck: 0, pitch: 0, yaw: 0, roll: 0 };
