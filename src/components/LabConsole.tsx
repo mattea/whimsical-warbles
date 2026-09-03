@@ -21,23 +21,30 @@ import LabScene from './LabScene';
 
 /**
  * Skill keys follow microduck_rl's own `infer_policy.py` bindings -- G ground
- * pick, R roulade, K/L kicks -- so the keyboard matches upstream. Sit and
- * stand get C/V because WASD already owns the letters nearer them.
+ * pick, R roulade, K/L kicks -- so the keyboard matches upstream.
+ *
+ * Sit and stand are one control rather than two, because they are one policy
+ * driven by a posture flag: you can only sit while standing and only stand
+ * while seated.
  */
-const SKILLS: { id: Skill; label: string; key: string }[] = [
-  { id: 'ground_pick', label: 'Ground pick', key: 'G' },
-  { id: 'roulade', label: 'Roulade', key: 'R' },
-  { id: 'kick_left', label: 'Kick L', key: 'K' },
-  { id: 'kick_right', label: 'Kick R', key: 'L' },
-  { id: 'sit', label: 'Sit', key: 'C' },
-  { id: 'stand', label: 'Stand', key: 'V' },
+const SKILLS: { id: Skill; label: string; key: string; hint: string }[] = [
+  { id: 'ground_pick', label: 'Ground pick', key: 'G', hint: 'beak to the floor and back' },
+  { id: 'roulade', label: 'Roulade', key: 'R', hint: 'a forward roll over the head' },
+  { id: 'kick_left', label: 'Kick L', key: 'K', hint: 'left-leg kick' },
+  { id: 'kick_right', label: 'Kick R', key: 'L', hint: 'right-leg kick' },
 ];
 
-const DRIVE_KEYS = ['w', 'a', 's', 'd', 'arrowleft', 'arrowright'];
+const DRIVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
 
-const DRIVE_VX = 0.3;
-const DRIVE_VY = 0.1;
-const DRIVE_VYAW = 1.0;
+/**
+ * Drive magnitudes chosen from what the shipped policy actually responds to.
+ * Below vx 0.25 it holds its stance and below vyaw ~1.5 it will not turn, so a
+ * gentler keypress would simply do nothing. Strafing is absent because the
+ * policy cannot do it -- a lateral command produces no motion at all.
+ */
+const DRIVE_VX = 0.4;
+const DRIVE_VX_BACK = -0.4;
+const DRIVE_VYAW = 2.0;
 
 /** Where the baked clips live, honouring Astro's configured base path. */
 const CLIPS_URL = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/duck/clips.json`;
@@ -56,6 +63,9 @@ export default function LabConsole() {
   const [fps, setFps] = useState(0);
   const [state, setState] = useState<DuckState | null>(null);
   const held = useRef(new Set<string>());
+  // Read inside the gamepad poll, which must not re-subscribe on every change.
+  const seatedRef = useRef(false);
+  seatedRef.current = state?.seated ?? false;
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -115,11 +125,15 @@ export default function LabConsole() {
   const pushCommand = useCallback(() => {
     if (!link) return;
     const keys = held.current;
-    const vx = (keys.has('w') ? DRIVE_VX : 0) + (keys.has('s') ? -DRIVE_VX / 2 : 0);
-    const vy = (keys.has('a') ? DRIVE_VY : 0) + (keys.has('d') ? -DRIVE_VY : 0);
-    const vyaw =
-      (keys.has('arrowleft') ? DRIVE_VYAW : 0) + (keys.has('arrowright') ? -DRIVE_VYAW : 0);
-    link.move({ vx, vy, vyaw });
+    const fwd = keys.has('w') || keys.has('arrowup');
+    const back = keys.has('s') || keys.has('arrowdown');
+    const left = keys.has('a') || keys.has('arrowleft');
+    const right = keys.has('d') || keys.has('arrowright');
+    link.move({
+      vx: (fwd ? DRIVE_VX : 0) + (back ? DRIVE_VX_BACK : 0),
+      vy: 0,
+      vyaw: (left ? DRIVE_VYAW : 0) + (right ? -DRIVE_VYAW : 0),
+    });
   }, [link]);
 
   useEffect(() => {
@@ -136,6 +150,11 @@ export default function LabConsole() {
         e.preventDefault();
         held.current.add(k);
         pushCommand();
+        return;
+      }
+      if (k === 'c') {
+        e.preventDefault();
+        duck.do(seatedRef.current ? 'stand' : 'sit');
         return;
       }
       const skill = skillFor(k);
@@ -189,7 +208,7 @@ export default function LabConsole() {
       const dead = (v: number) => (Math.abs(v) < 0.15 ? 0 : v);
       duck.move({
         vx: -dead(pad.axes[1] ?? 0) * DRIVE_VX,
-        vy: -dead(pad.axes[0] ?? 0) * DRIVE_VY,
+        vy: 0,
         vyaw: -dead(pad.axes[2] ?? 0) * DRIVE_VYAW,
       });
 
@@ -198,7 +217,7 @@ export default function LabConsole() {
         [2, 'roulade'],
         [4, 'kick_left'],
         [5, 'kick_right'],
-        [13, 'sit'],
+        [13, seatedRef.current ? 'stand' : 'sit'],
       ];
       for (const [button, skill] of map) {
         if (pad.buttons[button]?.pressed) {
@@ -265,12 +284,23 @@ export default function LabConsole() {
           {running ? '■ Power down' : loading ? '… Loading' : '▶ Power up'}
         </button>
 
+        <button
+          type="button"
+          className="lab-skill"
+          disabled={!running || !link}
+          title="Sit and stand are one policy driven by a posture flag"
+          onClick={() => link?.do(state?.seated ? 'stand' : 'sit')}
+        >
+          {state?.seated ? 'Stand up' : 'Sit down'} <kbd>C</kbd>
+        </button>
+
         {SKILLS.map((s) => (
           <button
             key={s.id}
             type="button"
             className="lab-skill"
             disabled={!running || !link}
+            title={s.hint}
             onClick={() => link?.do(s.id)}
           >
             {s.label} <kbd>{s.key}</kbd>
@@ -279,12 +309,10 @@ export default function LabConsole() {
       </div>
 
       <p className="lab-howto">
-        <kbd>W</kbd>
-        <kbd>A</kbd>
-        <kbd>S</kbd>
-        <kbd>D</kbd> to drive, <kbd>←</kbd>
-        <kbd>→</kbd> to turn, <kbd>Space</kbd> for the bill. A gamepad works too,
-        mapped the way the real robot maps it.
+        <kbd>W</kbd>/<kbd>S</kbd> forward and back, <kbd>A</kbd>/<kbd>D</kbd> to
+        turn (arrow keys do the same), <kbd>Space</kbd> for the bill. A gamepad
+        works too. There is no sideways: the shipped walking policy cannot
+        strafe, so that command would do nothing.
       </p>
 
       <dl className="lab-telemetry">
@@ -302,15 +330,17 @@ export default function LabConsole() {
         </div>
         <div>
           <dt>skill</dt>
-          <dd>{state?.activeSkill ?? 'idle'}</dd>
+          <dd>{state?.activeSkill ?? (state?.seated ? 'seated' : 'idle')}</dd>
         </div>
       </dl>
 
       <p className="lab-note">
         Joint motion is recorded from the ONNX policies that ship on Pollen
         Robotics&rsquo; <strong>Microduck</strong>, replayed on that robot&rsquo;s exact
-        skeleton. In playback mode there is no physics, so the pugglenaut cannot
-        fall over &mdash; that arrives with the live simulator.
+        skeleton, and the ground moves under it at the speed those recordings
+        actually reached &mdash; which is well under what you ask for. In playback
+        mode there is no physics, so the pugglenaut cannot fall over &mdash; that
+        arrives with the live simulator.
       </p>
     </div>
   );

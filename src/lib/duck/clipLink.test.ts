@@ -47,18 +47,61 @@ describe('createClipLink', () => {
     expect(seen.state!.root.pos[2]).toBeCloseTo(tree.trunkHeight, 2);
   });
 
-  it('integrates forward travel from a held command', () => {
+  it('travels at the speed the policy achieves, not the speed commanded', () => {
     const { link, seen } = harness();
-    link.move({ vx: 0.15, vy: 0, vyaw: 0 });
+    link.move({ vx: 0.4, vy: 0, vyaw: 0 });
     advance(link, 2);
-    // 0.15 m/s for 2 s, less the command-smoothing ramp-in.
-    expect(seen.state!.root.pos[0]).toBeGreaterThan(0.25);
-    expect(seen.state!.root.pos[0]).toBeLessThan(0.31);
+    const travelled = seen.state!.root.pos[0];
+    // The policy delivers about 0.156 m/s for a 0.4 command. Driving the root
+    // from the command would put it near 0.8 m here, and the feet would skate.
+    expect(travelled).toBeGreaterThan(0.2);
+    expect(travelled).toBeLessThan(0.4);
+  });
+
+  it('keeps ground speed in step with leg motion', () => {
+    // The anti-skate property. Blending across the policy's walk threshold
+    // gives a soft ramp rather than a cliff, which suits an analog stick -- but
+    // however far into the ramp the command sits, the distance covered has to
+    // track how much the legs are actually cycling.
+    const probe = (vx: number) => {
+      const { link, seen } = harness();
+      link.move({ vx, vy: 0, vyaw: 0 });
+      advance(link, 1); // settle the command smoothing
+      const from = seen.state!.root.pos[0];
+      let lo = Infinity;
+      let hi = -Infinity;
+      for (let i = 0; i < 100; i++) {
+        link.tick(CONTROL_DT);
+        lo = Math.min(lo, seen.state!.joints[2]);
+        hi = Math.max(hi, seen.state!.joints[2]);
+      }
+      return { travel: seen.state!.root.pos[0] - from, swing: hi - lo };
+    };
+
+    const parked = probe(0);
+    const creep = probe(0.1);
+    const full = probe(0.4);
+
+    // Parked: no travel and no stepping.
+    expect(Math.abs(parked.travel)).toBeLessThan(0.005);
+    expect(parked.swing).toBeLessThan(0.02);
+
+    // Both rise together, and neither outruns the other.
+    expect(creep.travel).toBeGreaterThan(parked.travel);
+    expect(full.travel).toBeGreaterThan(creep.travel);
+    expect(creep.swing).toBeGreaterThan(parked.swing);
+    expect(full.swing).toBeGreaterThan(creep.swing);
+
+    // Distance per unit of leg swing stays within a factor of two across the
+    // ramp -- that ratio blowing up is exactly what skating looks like.
+    const rate = (p: { travel: number; swing: number }) => p.travel / p.swing;
+    expect(rate(creep)).toBeGreaterThan(rate(full) / 2);
+    expect(rate(creep)).toBeLessThan(rate(full) * 2);
   });
 
   it('turns in place on a yaw command without translating', () => {
     const { link, seen } = harness();
-    link.move({ vx: 0, vy: 0, vyaw: 1.0 });
+    link.move({ vx: 0, vy: 0, vyaw: 2.0 });
     advance(link, 1);
     const [w, , , z] = seen.state!.root.quat;
     expect(Math.abs(2 * Math.atan2(z, w))).toBeGreaterThan(0.8);
@@ -67,18 +110,21 @@ describe('createClipLink', () => {
 
   it('drives along its heading after turning', () => {
     const { link, seen } = harness();
-    link.move({ vx: 0, vy: 0, vyaw: 1.0 });
-    advance(link, Math.PI / 2); // ~90 degrees
-    link.move({ vx: 0.3, vy: 0, vyaw: 0 });
-    advance(link, 1);
-    // Heading is +90 degrees, so travel is along +Y, not +X.
-    expect(seen.state!.root.pos[1]).toBeGreaterThan(0.2);
-    expect(Math.abs(seen.state!.root.pos[0])).toBeLessThan(0.1);
+    link.move({ vx: 0, vy: 0, vyaw: 2.0 });
+    advance(link, 1.6); // about a quarter turn at the achieved ~1.0 rad/s
+    const turned = seen.state!.root.pos;
+    link.move({ vx: 0.4, vy: 0, vyaw: 0 });
+    advance(link, 2);
+    // Heading is roughly +90 degrees, so the travel lands along +Y, not +X.
+    const dx = seen.state!.root.pos[0] - turned[0];
+    const dy = seen.state!.root.pos[1] - turned[1];
+    expect(dy).toBeGreaterThan(0.15);
+    expect(Math.abs(dy)).toBeGreaterThan(Math.abs(dx));
   });
 
   it('stop() halts travel', () => {
     const { link, seen } = harness();
-    link.move({ vx: 0.3, vy: 0, vyaw: 0 });
+    link.move({ vx: 0.4, vy: 0, vyaw: 0 });
     advance(link, 1);
     const parked = seen.state!.root.pos[0];
     link.stop();
@@ -97,11 +143,21 @@ describe('createClipLink', () => {
 
   it('ignores a velocity command while a skill is running', () => {
     const { link, seen } = harness();
-    link.do('roulade');
-    link.move({ vx: 0.3, vy: 0, vyaw: 0 });
+    link.do('kick_left');
+    link.move({ vx: 0.4, vy: 0, vyaw: 0 });
     advance(link, 0.5);
-    expect(seen.state!.activeSkill).toBe('roulade');
-    expect(seen.state!.root.pos[0]).toBeCloseTo(0, 3);
+    expect(seen.state!.activeSkill).toBe('kick_left');
+    // A kick barely travels; a honoured drive command would have moved it far.
+    expect(Math.abs(seen.state!.root.pos[0])).toBeLessThan(0.05);
+  });
+
+  it('carries the roulade forward along its recorded path', () => {
+    const { link, seen } = harness();
+    link.do('roulade');
+    advance(link, clips.skills.get('roulade')!.duration - 0.1);
+    // The real forward roll covers about half a metre. A roulade that stayed
+    // put would be a flail, which is what a missing root path looks like.
+    expect(seen.state!.root.pos[0]).toBeGreaterThan(0.3);
   });
 
   it('does not interrupt a running skill with another', () => {
@@ -146,17 +202,19 @@ describe('createClipLink', () => {
     expect(seen.state!.gravity[2]).toBeCloseTo(-1, 3);
   });
 
-  it('reports a yaw rate matching the command', () => {
+  it('reports the yaw rate it is actually turning at', () => {
     const { link, seen } = harness();
-    link.move({ vx: 0, vy: 0, vyaw: 1.0 });
+    link.move({ vx: 0, vy: 0, vyaw: 2.0 });
     advance(link, 1);
-    expect(seen.state!.gyro[2]).toBeCloseTo(1.0, 1);
+    // Commanded 2.0, achieved about 1.0 -- the readout reports the truth.
+    expect(seen.state!.gyro[2]).toBeGreaterThan(0.5);
+    expect(seen.state!.gyro[2]).toBeLessThan(1.6);
   });
 
   it('keeps every joint finite and in range across a long drive', () => {
     const { link, seen } = harness();
     for (let i = 0; i < 500; i++) {
-      link.move({ vx: 0.3 * Math.sin(i / 40), vy: 0, vyaw: Math.cos(i / 30) });
+      link.move({ vx: 0.4 * Math.sin(i / 40), vy: 0, vyaw: 2 * Math.cos(i / 30) });
       link.tick(CONTROL_DT);
       for (let j = 0; j < JOINT_COUNT; j++) {
         expect(Number.isFinite(seen.state!.joints[j])).toBe(true);
@@ -192,7 +250,7 @@ describe('createClipLink', () => {
       return hi - lo;
     };
     expect(swing(0)).toBeLessThan(0.02);
-    expect(swing(0.3)).toBeGreaterThan(0.1);
+    expect(swing(0.4)).toBeGreaterThan(0.1);
   });
 });
 
@@ -255,5 +313,111 @@ describe('trunk orientation', () => {
     link.pose({ z: 0, roll: 0, pitch: 0.3 });
     link.tick(CONTROL_DT);
     expect(pitchOf(seen.state!.root.quat) - level).toBeGreaterThan(10);
+  });
+});
+
+describe('sit and stand as a pair', () => {
+  /** Run a skill to completion plus the blend-out. */
+  function runSkill(link: DuckLink, name: 'sit' | 'stand' | 'roulade' | 'kick_left') {
+    advance(link, clips.skills.get(name)!.duration + 0.4);
+  }
+
+  it('starts standing', () => {
+    const { link, seen } = harness();
+    link.tick(CONTROL_DT);
+    expect(seen.state!.seated).toBe(false);
+  });
+
+  it('sits, and stays seated', () => {
+    const { link, seen } = harness();
+    link.do('sit');
+    runSkill(link, 'sit');
+    expect(seen.state!.seated).toBe(true);
+    const height = seen.state!.root.pos[2];
+    // Still down a full second later, rather than springing back up.
+    advance(link, 1);
+    expect(seen.state!.seated).toBe(true);
+    expect(seen.state!.root.pos[2]).toBeCloseTo(height, 3);
+    expect(height).toBeLessThan(tree.trunkHeight - 0.03);
+  });
+
+  it('stands back up again', () => {
+    const { link, seen } = harness();
+    link.do('sit');
+    runSkill(link, 'sit');
+    link.do('stand');
+    runSkill(link, 'stand');
+    expect(seen.state!.seated).toBe(false);
+    expect(seen.state!.root.pos[2]).toBeCloseTo(tree.trunkHeight, 2);
+  });
+
+  it('refuses to sit while already seated, or stand while already up', () => {
+    const { link, seen } = harness();
+    link.do('stand'); // already standing
+    link.tick(CONTROL_DT);
+    expect(seen.state!.activeSkill).toBe(null);
+
+    link.do('sit');
+    runSkill(link, 'sit');
+    link.do('sit'); // already seated
+    link.tick(CONTROL_DT);
+    expect(seen.state!.activeSkill).toBe(null);
+  });
+
+  it('will not drive while seated', () => {
+    const { link, seen } = harness();
+    link.do('sit');
+    runSkill(link, 'sit');
+    const at = seen.state!.root.pos[0];
+    link.move({ vx: 0.4, vy: 0, vyaw: 0 });
+    advance(link, 1.5);
+    expect(seen.state!.root.pos[0]).toBeCloseTo(at, 3);
+  });
+
+  it('stands up first when another skill is asked for while seated', () => {
+    const { link, seen } = harness();
+    link.do('sit');
+    runSkill(link, 'sit');
+
+    link.do('kick_left');
+    link.tick(CONTROL_DT);
+    // It rises before kicking rather than kicking from the floor.
+    expect(seen.state!.activeSkill).toBe('stand');
+    advance(link, clips.skills.get('stand')!.duration + 0.1);
+    expect(seen.state!.seated).toBe(false);
+    expect(seen.state!.activeSkill).toBe('kick_left');
+  });
+});
+
+describe('handing back from a skill', () => {
+  it('returns to standing height after a ground pick', () => {
+    const { link, seen } = harness();
+    link.do('ground_pick');
+    let lowest = Infinity;
+    const ticks = Math.round(clips.skills.get('ground_pick')!.duration / CONTROL_DT);
+    for (let i = 0; i < ticks; i++) {
+      link.tick(CONTROL_DT);
+      lowest = Math.min(lowest, seen.state!.root.pos[2]);
+    }
+    // It really crouched...
+    expect(lowest).toBeLessThan(tree.trunkHeight - 0.02);
+    // ...and it really came back up.
+    advance(link, 0.6);
+    expect(seen.state!.activeSkill).toBe(null);
+    expect(seen.state!.root.pos[2]).toBeCloseTo(tree.trunkHeight, 2);
+  });
+
+  it('eases out of a skill rather than snapping', () => {
+    const { link, seen } = harness();
+    link.do('kick_left');
+    advance(link, clips.skills.get('kick_left')!.duration + 0.02);
+    const justAfter = Float32Array.from(seen.state!.joints);
+    link.tick(CONTROL_DT);
+    // One tick later the pose has moved, but only a little.
+    let biggest = 0;
+    for (let j = 0; j < JOINT_COUNT; j++) {
+      biggest = Math.max(biggest, Math.abs(seen.state!.joints[j] - justAfter[j]));
+    }
+    expect(biggest).toBeLessThan(0.15);
   });
 });

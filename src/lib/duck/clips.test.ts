@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import clipsJson from '../../../public/duck/clips.json';
 import { JOINT_COUNT } from './tree';
-import { blendGaits, decodeClips, pickGaits, sampleClip } from './clips';
+import { blendGaits, blendVelocity, decodeClips, pickGaits, sampleClip } from './clips';
 
 const clips = decodeClips(clipsJson);
 
 describe('decodeClips', () => {
-  it('decodes 36 gaits and 6 skills', () => {
-    expect(clips.gaits).toHaveLength(36);
+  it('decodes 12 gaits and 6 skills', () => {
+    // 4 forward speeds x 3 turn rates. No lateral axis: the shipped walking
+    // policy cannot strafe, so no clip is baked with one.
+    expect(clips.gaits).toHaveLength(12);
     expect([...clips.skills.keys()].sort()).toEqual([
       'ground_pick',
       'kick_left',
@@ -33,6 +35,35 @@ describe('decodeClips', () => {
 
   it('includes a standing-still gait', () => {
     expect(clips.gaits.some((g) => g.cmd.every((v) => v === 0))).toBe(true);
+  });
+
+  it('records an achieved velocity that is not the commanded one', () => {
+    const standing = clips.gaits.find((g) => g.cmd.every((v) => v === 0))!;
+    expect(Math.hypot(...standing.vel)).toBeLessThan(0.02);
+
+    const fast = clips.gaits.find((g) => g.cmd[0] === 0.4 && g.cmd[2] === 0)!;
+    // The policy delivers well under what it is asked for -- that gap is the
+    // whole reason the root is driven from `vel` rather than `cmd`.
+    expect(fast.vel[0]).toBeGreaterThan(0.1);
+    expect(fast.vel[0]).toBeLessThan(fast.cmd[0]);
+  });
+
+  it('turns in both directions', () => {
+    const left = clips.gaits.find((g) => g.cmd[0] === 0 && g.cmd[2] === 2)!;
+    const right = clips.gaits.find((g) => g.cmd[0] === 0 && g.cmd[2] === -2)!;
+    expect(left.vel[2]).toBeGreaterThan(0.5);
+    expect(right.vel[2]).toBeLessThan(-0.5);
+  });
+
+  it('captures a whole gait cycle per clip', () => {
+    // Detected by autocorrelation, so lengths differ; a clip that failed to
+    // find its period would loop with a visible hitch.
+    const lengths = new Set(clips.gaits.map((g) => g.frames));
+    expect(lengths.size).toBeGreaterThan(1);
+    for (const g of clips.gaits) {
+      expect(g.frames).toBeGreaterThanOrEqual(12);
+      expect(g.frames).toBeLessThanOrEqual(90);
+    }
   });
 });
 
@@ -84,9 +115,9 @@ describe('pickGaits', () => {
   });
 
   it('picks a single clip when the command sits on a grid point', () => {
-    const picked = pickGaits(clips.gaits, [0.3, 0, 0]);
+    const picked = pickGaits(clips.gaits, [0.4, 0, 0]);
     expect(picked).toHaveLength(1);
-    expect(picked[0].gait.cmd).toEqual([0.3, 0, 0]);
+    expect(picked[0].gait.cmd).toEqual([0.4, 0, 0]);
   });
 });
 
@@ -103,7 +134,7 @@ describe('blendGaits', () => {
   it('stays finite and bounded for off-grid commands', () => {
     const out = new Float32Array(JOINT_COUNT);
     for (let i = 0; i <= 10; i++) {
-      blendGaits(clips.gaits, [0.05 * i - 0.15, 0.02, -0.3], i / 11, out);
+      blendGaits(clips.gaits, [0.05 * i - 0.15, 0, -0.3 * i], i / 11, out);
       for (const v of out) {
         expect(Number.isFinite(v)).toBe(true);
         expect(Math.abs(v)).toBeLessThan(3.2);
@@ -126,6 +157,26 @@ describe('blendGaits', () => {
       return hi - lo;
     };
     expect(swing([0, 0, 0])).toBeLessThan(0.02);
-    expect(swing([0.3, 0, 0])).toBeGreaterThan(0.1);
+    expect(swing([0.4, 0, 0])).toBeGreaterThan(0.1);
+  });
+});
+
+describe('blendVelocity', () => {
+  it('is zero for a parked command', () => {
+    const v: [number, number, number] = [0, 0, 0];
+    blendVelocity(clips.gaits, [0, 0, 0], v);
+    expect(Math.hypot(...v)).toBeLessThan(0.02);
+  });
+
+  it('reports real forward speed when driving', () => {
+    const v: [number, number, number] = [0, 0, 0];
+    blendVelocity(clips.gaits, [0.4, 0, 0], v);
+    expect(v[0]).toBeGreaterThan(0.1);
+  });
+
+  it('reports a negative turn rate for a right-hand command', () => {
+    const v: [number, number, number] = [0, 0, 0];
+    blendVelocity(clips.gaits, [0, 0, -2], v);
+    expect(v[2]).toBeLessThan(-0.5);
   });
 });
