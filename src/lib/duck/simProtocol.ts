@@ -228,6 +228,14 @@ export type SimRequest =
   /** Add a velocity impulse to the trunk's free joint, in world axes. */
   | { type: 'push'; impulse: [number, number, number] }
   | { type: 'reset' }
+  /**
+   * Stop or restart the control clock.
+   *
+   * The console powers down as well as up, and a paused simulation has to
+   * actually stop: this site's rule is that nothing animated runs unless it
+   * was asked for, and 50 Hz of physics behind a still poster would break it.
+   */
+  | { type: 'pause'; paused: boolean }
   | { type: 'recycle'; buffer: ArrayBuffer }
   | { type: 'dispose' };
 

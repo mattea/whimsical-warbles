@@ -289,6 +289,14 @@ describe('shove and reset', () => {
     expect(fake.last('push')?.impulse).toEqual([1, -1, 0.5]);
   });
 
+  it('pauses and resumes the control clock', () => {
+    const { fake, link } = boot();
+    link.setPaused(true);
+    expect(fake.last('pause')?.paused).toBe(true);
+    link.setPaused(false);
+    expect(fake.last('pause')?.paused).toBe(false);
+  });
+
   it('drops the drive command when reset, so it does not walk out of the keyframe', () => {
     const { fake, link } = boot();
     link.move({ vx: 0.4, vy: 0, vyaw: 0 });
@@ -500,6 +508,7 @@ describe('the DuckLink contract', () => {
       'dispose',
       'push',
       'reset',
+      'setPaused',
       'ready',
       'telemetry',
       'loading',

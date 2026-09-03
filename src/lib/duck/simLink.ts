@@ -96,6 +96,8 @@ export interface SimLink extends DuckLink {
   push(impulse?: Vec3): void;
   /** Back to the STAND keyframe, with the controller's state cleared. */
   reset(): void;
+  /** Stop or restart the worker's control clock. Powering down means this. */
+  setPaused(paused: boolean): void;
   /** Resolves when the worker has the model compiled and the loop running. */
   ready(): Promise<SimReady>;
   /** The parts of a state frame `DuckState` has nowhere to put. */
@@ -320,6 +322,9 @@ export function createSimLink(options: SimLinkOptions): SimLink {
       twist = { vx: 0, vy: 0, vyaw: 0 };
       post({ type: 'reset' });
       sendCommand();
+    },
+    setPaused(paused: boolean) {
+      post({ type: 'pause', paused });
     },
     ready() {
       return readyPromise;

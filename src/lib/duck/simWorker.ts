@@ -32,6 +32,7 @@ import { CONTROL_DT, CONTROL_HZ } from './link';
 import { decodePolicyWeights, runPolicyNetwork, type PolicyWeights } from './mlp';
 import { ACTION_LEN, buildObservation, OBS_LEN } from './observation';
 import {
+  actionScaleForSlot,
   createSimController,
   projectedGravityFromQuat,
   uprightFromGravity,
@@ -106,6 +107,8 @@ let sim: Loaded | null = null;
 let controller: SimController | null = null;
 let homePose: number[] = [];
 const weights = new Map<PolicySlot, PolicyWeights>();
+/** Slots already complained about, so a missing policy is one message, not 50/s. */
+const reportedMissing = new Set<PolicySlot>();
 
 // Hot-path buffers. Everything the tick touches is allocated once, here.
 const obs = new Float32Array(OBS_LEN);
@@ -202,12 +205,18 @@ function step(): void {
   const plan = controller.plan(uprightFromGravity(gravity), CONTROL_DT);
   lastPlan = plan;
   // A plan can only name a slot the controller was told about, so a miss here
-  // means the two disagree -- worth saying out loud rather than silently
-  // freezing the joints.
-  const policy = weights.get(plan.slot);
+  // means the two disagree. Say so -- once, not fifty times a second -- and
+  // carry on standing rather than freezing every joint at its last target.
+  let policy = weights.get(plan.slot);
   if (!policy) {
-    fail(`no weights loaded for the ${plan.slot} policy`, false);
-    return;
+    if (!reportedMissing.has(plan.slot)) {
+      reportedMissing.add(plan.slot);
+      fail(`no weights loaded for the ${plan.slot} policy; standing instead`, false);
+    }
+    policy = weights.get('stand');
+    if (!policy) return;
+    plan.slot = 'stand';
+    plan.actionScale = actionScaleForSlot('stand');
   }
 
   buildObservation(
@@ -399,6 +408,19 @@ ctx.addEventListener('message', (event) => {
       case 'reset':
         resetToStand();
         controller?.reset();
+        break;
+
+      case 'pause':
+        if (message.paused) {
+          stop();
+        } else if (sim && timer === null) {
+          // Restart the clock from now rather than from where it stopped, so
+          // resuming does not present a minute of backlog to catch up on.
+          nextAt = performance.now();
+          windowStart = nextAt;
+          windowTicks = 0;
+          pump();
+        }
         break;
 
       case 'recycle':
