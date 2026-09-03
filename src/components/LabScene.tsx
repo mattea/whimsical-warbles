@@ -310,6 +310,25 @@ export default function LabScene({
     let xrSessionMode: LabXRMode | null = null;
     let xrStarting = false;
     let hitTestSource: XRHitTestSource | null = null;
+    /**
+     * A second hit-test source, aimed through the tapped pixel.
+     *
+     * `hitTestSource` rides the `viewer` space, so its ray leaves the device
+     * along the forward axis -- the middle of the screen, wherever you happen
+     * to be pointing. That is right for a reticle and wrong for a tap: tapping
+     * the far corner of the room sent him to whatever was under the crosshair
+     * instead. Transient input is the module's answer to that; a screen touch
+     * raises an input source whose ray passes through the touched point.
+     *
+     * Strictly an upgrade: if the device does not offer it, or a tap produces
+     * no transient hit, everything falls back to the viewer reticle exactly as
+     * before.
+     */
+    let tapHitSource: XRTransientInputHitTestSource | null = null;
+    /** The input source that raised the pending `select`, to match a hit to. */
+    let selectSource: XRInputSource | null = null;
+    const tapPoint = new THREE.Vector3();
+    let tapReady = false;
     /** Floor height in the reference space we actually got. */
     let floorY = 0;
     /** Has the user chosen where the pugglenaut stands? */
@@ -412,8 +431,29 @@ export default function LabScene({
         return;
       }
 
+      // A touch in progress: where is the finger pointing? Read first, so the
+      // reticle can follow it and a tap lands where it was aimed.
+      tapReady = false;
+      if (tapHitSource) {
+        for (const group of frame.getHitTestResultsForTransientInput(tapHitSource)) {
+          if (selectSource && group.inputSource !== selectSource) continue;
+          const hit = group.results[0];
+          const pose = hit?.getPose(refSpace);
+          if (!pose) continue;
+          reticle.matrix.fromArray(pose.transform.matrix);
+          reticle.visible = true;
+          tapPoint.set(
+            pose.transform.position.x,
+            pose.transform.position.y,
+            pose.transform.position.z,
+          );
+          tapReady = true;
+          break;
+        }
+      }
+
       // AR. Track the surface under the device's aim.
-      if (hitTestSource) {
+      if (!tapReady && hitTestSource) {
         const hits = frame.getHitTestResults(hitTestSource);
         const pose = hits.length > 0 ? hits[0].getPose(refSpace) : undefined;
         if (pose) {
@@ -440,27 +480,32 @@ export default function LabScene({
       if (placed) {
         // Once he is standing on your floor, the reticle stops being a
         // placement cursor and becomes a "walk here" one. That is the whole
-        // control scheme on a handset: point at the floor and tap, rather than
-        // covering what you are looking at with a thumb pad.
-        if (hitReady) reportTarget(hitPoint);
+        // control scheme on a handset: tap the floor where you want him.
+        // The tapped point wins over the reticle when the device gave us one.
+        if (tapReady) reportTarget(tapPoint);
+        else if (hitReady) reportTarget(hitPoint);
+        selectSource = null;
         return;
       }
 
-      if (hitReady) {
+      if (tapReady || hitReady) {
         // viewerPos was filled only on the fallback path, so read it here.
         const p = viewerPose.transform.position;
         viewerPos.set(p.x, p.y, p.z);
-        placeAt(hitPoint, viewerPos);
+        placeAt(tapReady ? tapPoint : hitPoint, viewerPos);
+        selectSource = null;
       } else {
         anchorInFrontOf(viewerPose, AR_FALLBACK_DISTANCE);
         placeAt(anchor, viewerPos);
       }
     }
 
-    function onSelect(): void {
+    function onSelect(event: XRInputSourceEvent): void {
       // Deferred rather than handled here: inside the frame callback the
-      // viewer and hit poses are live, and here they are not.
+      // viewer and hit poses are live, and here they are not. The input source
+      // is kept so the frame can find the hit belonging to *this* touch.
       selectPending = true;
+      selectSource = event.inputSource;
     }
 
     function onSessionEnd(): void {
@@ -470,6 +515,10 @@ export default function LabScene({
       }
       hitTestSource?.cancel();
       hitTestSource = null;
+      tapHitSource?.cancel();
+      tapHitSource = null;
+      selectSource = null;
+      tapReady = false;
       xrSessionMode = null;
       placed = false;
       immersiveRef.current?.(false);
@@ -542,6 +591,17 @@ export default function LabScene({
           // phone or headset and lands wherever it is pointed.
           const viewerSpace = await session.requestReferenceSpace('viewer');
           hitTestSource = (await session.requestHitTestSource?.({ space: viewerSpace })) ?? null;
+          // And a source aimed through whatever pixel gets touched. Optional:
+          // a headset has no touchscreen, and an older runtime may not offer
+          // it at all, in which case taps keep using the reticle.
+          try {
+            tapHitSource =
+              (await session.requestHitTestSourceForTransientInput?.({
+                profile: 'generic-touchscreen',
+              })) ?? null;
+          } catch {
+            tapHitSource = null;
+          }
         }
 
         if (!disposed) setXrMode(mode);
@@ -686,6 +746,7 @@ export default function LabScene({
       // otherwise keep asking a disposed renderer for frames.
       void xrSession?.end().catch(() => undefined);
       hitTestSource?.cancel();
+      tapHitSource?.cancel();
       observer.disconnect();
       unsubscribe();
       rig.dispose();
