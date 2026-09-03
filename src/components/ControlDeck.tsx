@@ -32,7 +32,7 @@ export default function ControlDeck() {
   const [screensaverOn, setScreensaverOn] = useState(false);
   const [companionOn, setCompanionOn] = useState(false);
   const [consoleOpen, setConsoleOpen] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ title: string; body: string } | null>(null);
 
   // Restore persisted effect state, wire the Konami code and the backtick
   // shortcut. Runs once on the client.
@@ -55,7 +55,7 @@ export default function ControlDeck() {
 
     const cleanupKonami = initKonami(() => {
       barrelRoll();
-      flash('↑↑↓↓←→←→ B A — the puggle does a spacewalk. 🚀');
+      flash('↑↑↓↓←→←→ B A — the puggle does a spacewalk. 🚀', 'Cheat code');
     });
 
     const onKey = (e: KeyboardEvent) => {
@@ -74,9 +74,9 @@ export default function ControlDeck() {
   }, []);
 
   let toastTimer: number | undefined;
-  function flash(msg: string) {
+  function flash(body: string, title = 'Control deck') {
     window.clearTimeout(toastTimer);
-    setToast(msg);
+    setToast({ title, body });
     toastTimer = window.setTimeout(() => setToast(null), 3200);
   }
 
@@ -109,8 +109,12 @@ export default function ControlDeck() {
     }
     window.dispatchEvent(new CustomEvent('pugglenaut:screensaver', { detail: { on: next } }));
     setScreensaverOn(next);
-    if (next && prefersReducedMotion()) {
-      flash('Screensaver is on, but it stays put while reduced-motion is enabled.');
+    if (!next) {
+      flash('Screensaver off.');
+    } else if (prefersReducedMotion()) {
+      flash('Screensaver on — but it stays put while your system is set to reduced motion.');
+    } else {
+      flash('Screensaver on — here it is now; it drifts back after ~30s of stillness. Move the mouse to wake it.');
     }
   }
 
@@ -191,8 +195,8 @@ export default function ControlDeck() {
 
       {toast ? (
         <div className="control-deck-toast">
-          <Toast tone="success" title="Cheat code" icon="rocket" onClose={() => setToast(null)}>
-            {toast}
+          <Toast tone="success" title={toast.title} icon="rocket" onClose={() => setToast(null)}>
+            {toast.body}
           </Toast>
         </div>
       ) : null}

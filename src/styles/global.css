@@ -184,12 +184,14 @@ body {
   margin: 0 2px;
 }
 
-/* The Konami toast floats in the corner, above everything. */
+/* Control-deck toasts (Konami, screensaver hint, …) float in the corner above
+   everything — including the screensaver overlay, so the "move to wake it" hint
+   is readable over the preview. */
 .control-deck-toast {
   position: fixed;
   right: 16px;
   bottom: 16px;
-  z-index: var(--rp-z-toast, 10000);
+  z-index: 2147483647;
   max-width: min(92vw, 360px);
 }
 
@@ -335,7 +337,10 @@ kbd {
    Console (Mission Control)
    ========================================================================== */
 
-.console { display: grid; gap: 10px; min-width: min(78vw, 460px); }
+/* Fill the dialog body — do NOT force a min-width wider than the DS dialog
+   (width: min(440px, 100%)), or the black terminal boxes spill past the window
+   frame. min-width:0 keeps grid/flex children from overflowing on long content. */
+.console { display: grid; gap: 10px; min-width: 0; }
 .console-scroll {
   height: 240px;
   overflow-y: auto;
@@ -364,6 +369,7 @@ kbd {
 }
 .console-input input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
