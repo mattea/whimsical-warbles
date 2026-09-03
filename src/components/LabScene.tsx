@@ -117,10 +117,10 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     camera.up.set(0, 0, 1);
     const desktopFov = camera.fov;
 
+    // The hemisphere light stays in the scene frame. Its default sky direction
+    // is +Y, which is up in XR and merely a convention here, so leaving it
+    // where it is happens to be right in both.
     scene.add(new THREE.HemisphereLight(0xffffff, 0x554433, 1.5));
-    const key = new THREE.DirectionalLight(0xffffff, 1.6);
-    key.position.set(0.4, -0.5, 0.9);
-    scene.add(key);
 
     // Everything authored in the robot's Z-up metres hangs off one group, so
     // entering XR is a single transform on the group rather than a rewrite of
@@ -128,6 +128,16 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     const content = new THREE.Group();
     content.name = 'lab-content';
     scene.add(content);
+
+    // The key light lives INSIDE the content group, with its target, so that
+    // "above and to the side" keeps meaning that after the XR rotation. Left
+    // in the scene frame its +Z would become XR forward and the pugglenaut
+    // would be lit from the user's face. A directional light's direction runs
+    // from its world position to its target's, so both have to move together.
+    const key = new THREE.DirectionalLight(0xffffff, 1.6);
+    key.position.set(0.4, -0.5, 0.9);
+    content.add(key);
+    content.add(key.target);
 
     // Floor at z = 0, where the MJCF's ground plane sits.
     const grid = new THREE.GridHelper(2, 20, 0x8f7a45, 0x8f7a45);
@@ -147,6 +157,9 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     const reticleGeo = new THREE.RingGeometry(RETICLE_INNER, RETICLE_OUTER, 32).rotateX(
       -Math.PI / 2,
     );
+    // Unlit on purpose: while the user is still choosing a spot the content
+    // group is hidden, which takes the key light with it, and a lit reticle
+    // would go black at exactly the moment it has to be seen.
     const reticleMat = new THREE.MeshBasicMaterial({
       color: PALETTE.flame,
       transparent: true,
@@ -202,6 +215,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     let disposed = false;
     let xrSession: XRSession | null = null;
     let xrSessionMode: LabXRMode | null = null;
+    let xrStarting = false;
     let hitTestSource: XRHitTestSource | null = null;
     /** Floor height in the reference space we actually got. */
     let floorY = 0;
@@ -364,7 +378,10 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     }
 
     async function enterXR(mode: LabXRMode): Promise<void> {
-      if (disposed || xrSession || !navigator.xr) return;
+      // `xrStarting` guards the window between the click and the session
+      // being attached: a second tap in there would ask for two sessions.
+      if (disposed || xrSession || xrStarting || !navigator.xr) return;
+      xrStarting = true;
       setXrError(null);
       try {
         const session = await navigator.xr.requestSession(
@@ -413,6 +430,8 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
         // `sessionend`, which runs `onSessionEnd` again; it is idempotent.
         onSessionEnd();
         void renderer.xr.getSession()?.end().catch(() => undefined);
+      } finally {
+        xrStarting = false;
       }
     }
 
