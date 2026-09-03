@@ -425,8 +425,15 @@
    (card, window, table, tabs, menu, dialog) keep just the uneven-radius look
    below, since an outside overlay would be clipped. */
 [data-rp-theme^="sketch"] :is(.rp-btn, .rp-badge, .rp-tag, .rp-alert, .rp-toast,
-  .rp-tooltip__bubble, .rp-field__well, .rp-select__well, .rp-avatar, .rp-check__box) {
+  .rp-field__well, .rp-select__well, .rp-avatar, .rp-check__box) {
   position: relative;
+  border-color: transparent !important;
+}
+/* The tooltip bubble is already position:absolute (its own anchor for the
+   ::after outline below), so it must NOT be forced to `position: relative` —
+   that pulls it into normal flow and inflates the tooltip's layout width. Just
+   hide its straight border so only the wobbly ::after shows. */
+[data-rp-theme^="sketch"] .rp-tooltip__bubble {
   border-color: transparent !important;
 }
 [data-rp-theme^="sketch"] :is(.rp-btn, .rp-badge, .rp-tag, .rp-alert, .rp-toast,
@@ -1479,8 +1486,11 @@
   border: 2px solid var(--rp-violet-400);
   box-shadow: var(--rp-shadow-hard);
 }
+/* Show on hover, or on KEYBOARD focus only (:has(:focus-visible), not
+   :focus-within) — otherwise clicking the trigger with the mouse leaves focus
+   on it and the bubble lingers until the next click elsewhere. */
 .rp-tooltip:hover .rp-tooltip__bubble,
-.rp-tooltip:focus-within .rp-tooltip__bubble {
+.rp-tooltip:has(:focus-visible) .rp-tooltip__bubble {
   opacity: 1;
   transform: scale(1);
 }
