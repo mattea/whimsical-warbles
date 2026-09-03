@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@retropolis/ui';
+import { useStageFit } from '../lib/useStageFit';
 import '../styles/snake.css';
 
 /**
@@ -247,6 +248,8 @@ function drawHead(
 export default function CometSnake() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<Engine | null>(null);
   const rafRef = useRef<number | null>(null);
   const phaseRef = useRef<Phase>('idle');
@@ -266,6 +269,10 @@ export default function CometSnake() {
     phaseRef.current = p;
     setPhase(p);
   }, []);
+
+  // Grow the stage to fit the start / game-over card on short viewports, then
+  // snap back to the landscape play area once a run begins.
+  useStageFit(stageRef, overlayRef, phase !== 'playing');
 
   /* --- Engine lifecycle -------------------------------------------------- */
 
@@ -773,7 +780,7 @@ export default function CometSnake() {
         browser. This is a visual arcade game.
       </p>
 
-      <div className="pg-snake-stage">
+      <div className="pg-snake-stage" ref={stageRef}>
         <canvas
           ref={canvasRef}
           className="pg-snake-canvas"
@@ -782,7 +789,7 @@ export default function CometSnake() {
         />
 
         {phase === 'idle' && (
-          <div className="pg-snake-overlay">
+          <div className="pg-snake-overlay" ref={overlayRef}>
             <div className="pg-snake-card">
               <h2 className="pg-snake-card-title">Comet Snake</h2>
               <p className="pg-snake-howto">
@@ -805,7 +812,7 @@ export default function CometSnake() {
         )}
 
         {phase === 'gameover' && (
-          <div className="pg-snake-overlay">
+          <div className="pg-snake-overlay" ref={overlayRef}>
             <div className="pg-snake-card">
               <h2 className="pg-snake-card-title">Burnout!</h2>
               <p className="pg-snake-card-sub">The comet crossed its own tail.</p>
