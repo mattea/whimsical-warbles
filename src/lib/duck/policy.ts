@@ -39,6 +39,14 @@
  *   into `public/` or pointed at with `ort.env.wasm.wasmPaths`. Left to the
  *   page: it is a serving decision, not a policy one, and setting it from here
  *   would mean a library mutating global runtime state.
+ *
+ * **This module is a development-time oracle, not a shipped code path.**
+ * `onnxruntime-web` is a devDependency, so nothing a page imports may reach
+ * this file. The browser runs `mlp.ts`, which multiplies the same weights out
+ * directly and is held to this module's output by `mlp.test.ts` -- pulling in a
+ * 14 MB wasm (3.4 MB gzipped) to evaluate four matrix multiplies is not a
+ * trade worth making. What this module is for is being the independent
+ * implementation that proves the hand-rolled one right.
  */
 
 import { ACTION_LEN, OBS_LEN } from './observation';
