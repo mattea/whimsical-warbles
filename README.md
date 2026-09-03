@@ -43,9 +43,11 @@ Pages (`src/pages/`):
 - **`/lab`** — "Waddle Lab": drive the pugglenaut with the real gait of
   [Microduck](https://github.com/pollen-robotics/microduck), a 25 cm bipedal
   robot. Joint motion is baked offline from the ONNX policies that ship on that
-  robot and replayed on its exact skeleton by `src/lib/duck/`. The 3D rig is
-  procedural Three.js (`src/lib/duck/pugglenaut.ts`) — no mesh assets. The
-  island is `client:visible`, and nothing animates until you power it on.
+  robot and replayed on its exact skeleton by `src/lib/duck/`. `W`/`S` drive,
+  `A`/`D` turn, and the skills are the robot's own — ground pick, roulade, the
+  two kicks, and a sit/stand posture toggle. The 3D rig is procedural Three.js
+  (`src/lib/duck/pugglenaut.ts`) — no mesh assets. The island is
+  `client:visible`, and nothing animates until you power it on.
 - **`/guestbook`** — sign-the-wall guestbook (backend-backed; a read-only sample
   wall in fallback mode).
 - **`/contact`** — a "Signal" form that delivers a message (backend-backed; a
@@ -134,7 +136,7 @@ That writes three things:
 | file | what |
 | --- | --- |
 | `public/duck/tree.json` | the kinematic tree — link offsets, joint limits, home pose |
-| `public/duck/clips.json` | 36 velocity-grid gaits plus 6 skill one-shots |
+| `public/duck/clips.json` | 12 velocity-grid gaits plus 6 skills |
 | `src/lib/duck/fk-golden.json` | MuJoCo's own body transforms, as a test fixture |
 
 Every number in the first is extracted from the MJCF rather than transcribed,
@@ -142,6 +144,28 @@ because a wrong link offset does not fail loudly — it produces a plausible
 pugglenaut that walks wrong. `src/lib/duck/fk.test.ts` holds the TypeScript
 forward kinematics to MuJoCo's answer to six decimals, which is what pins the
 joint order and rotation conventions.
+
+#### What the bake has to get right
+
+Three things about the shipped policies are not guessable, and getting any of
+them wrong produces motion that looks plausible and is wrong:
+
+- **Most commands do nothing.** `alpha_walking` holds its stance below about
+  `vx` 0.25 and will not turn below about `vyaw` 1.5, and above the threshold it
+  delivers roughly 40% of what it was asked for. A lateral command produces no
+  motion in either direction, so **strafing is not baked** — the policy cannot
+  do it. Each clip therefore records the velocity it *achieved*, and the browser
+  integrates the world position from that. Driving the root from the command
+  instead is what makes a robot skate across the floor.
+- **Skills carry command encodings.** The kicks and the roulade take an all-zero
+  command — being selected is the trigger. The ground pick needs a *rotating*
+  phase in the twist slots over a 4 s period, truncated at 0.7 of it. Sit and
+  stand are one policy driven by a posture flag in the `vx` slot: `1` sits, `0`
+  stands, so an all-zero command is the *stand*. All of this is
+  `robotd/src/control.rs`.
+- **Clips must loop on a whole gait cycle.** The period is found per clip by
+  autocorrelation on the leg joints rather than assumed, because a fixed window
+  leaves a visible hitch at every loop.
 
 The site build never runs the bake and does not depend on those checkouts.
 Both upstream repos are Apache 2.0; their 3D models are CC BY-SA-NC, and this
