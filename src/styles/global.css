@@ -474,3 +474,89 @@ body.fx-roll {
   --hero-color: var(--rp-ink, #1c1030);
   --hero-shadow: rgba(60, 60, 70, 0.22);
 }
+
+/* ==========================================================================
+   Functional window controls (progressive enhancement)
+
+   The Retropolis <Window> caption buttons are wired up by
+   src/scripts/windowControls.ts; these styles realize the three states plus
+   the little dock of closed windows. Everything keys off data-attributes the
+   script toggles, so a no-JS visitor sees the plain, static windows.
+   ========================================================================== */
+
+.rp-window__cap {
+  cursor: pointer;
+}
+
+/* Minimize → collapse to just the title bar. */
+.rp-window[data-rp-min] .rp-window__body,
+.rp-window[data-rp-min] .rp-window__status {
+  display: none;
+}
+
+/* Maximize → fill the page (Esc restores). */
+.rp-window[data-rp-max] {
+  position: fixed;
+  inset: 8px;
+  z-index: 500;
+  margin: 0;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  overflow: auto;
+  box-shadow: var(--rp-shadow-hard-lg, 6px 6px 0 0 #000);
+}
+.rp-window[data-rp-max] .rp-window__body {
+  overflow: auto;
+}
+
+/* Close → hidden until reopened from the dock. */
+.rp-window[data-rp-closed] {
+  display: none !important;
+}
+
+/* The dock: a small taskbar of closed windows, centered at the bottom. */
+#rp-window-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 490;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: min(680px, calc(100vw - 24px));
+  padding: 6px 8px;
+  background: var(--rp-surface);
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-md, 7px);
+  box-shadow: var(--rp-shadow-hard, 3px 3px 0 0 #000);
+}
+#rp-window-dock:empty {
+  display: none;
+}
+
+.rp-dock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--rp-text);
+  background: var(--rp-bg);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 3px);
+  cursor: pointer;
+}
+.rp-dock-chip:active {
+  transform: translate(1px, 1px);
+}
+.rp-dock-chip__label {
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

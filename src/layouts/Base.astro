@@ -103,5 +103,11 @@ const year = new Date().getFullYear();
       </nav>
       <span class="site-foot-hint">psst — press <kbd>`</kbd> for mission control</span>
     </footer>
+
+    <!-- Progressive enhancement: make the window caption buttons (minimize /
+         maximize / close) work on the statically-rendered Retropolis windows. -->
+    <script>
+      import '../scripts/windowControls.ts';
+    </script>
   </body>
 </html>
