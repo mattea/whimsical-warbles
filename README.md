@@ -131,19 +131,31 @@ uv run --no-project --with mujoco --with onnxruntime --with numpy \
     --microduck ../microduck --microduck-rl ../microduck_rl
 ```
 
-That writes three things:
+That writes:
 
 | file | what |
 | --- | --- |
 | `public/duck/tree.json` | the kinematic tree — link offsets, joint limits, home pose |
 | `public/duck/clips.json` | 12 velocity-grid gaits plus 6 skills |
 | `src/lib/duck/fk-golden.json` | MuJoCo's own body transforms, as a test fixture |
+| `src/lib/duck/obs-golden.json` | 20 observation inputs and the 61 floats Python builds from them |
+| `src/lib/duck/policy-golden.json` | 8 `obs → action` pairs from `alpha_walking.onnx` |
+| `src/lib/duck/alpha_walking.onnx` | that policy, copied so the golden test can run the real graph |
 
 Every number in the first is extracted from the MJCF rather than transcribed,
 because a wrong link offset does not fail loudly — it produces a plausible
 pugglenaut that walks wrong. `src/lib/duck/fk.test.ts` holds the TypeScript
 forward kinematics to MuJoCo's answer to six decimals, which is what pins the
 joint order and rotation conventions.
+
+The last three exist for the same reason one step further up. `observation.ts`
+rebuilds Microduck's 61-slot observation in TypeScript, and `obs.rs` warns that
+a misplaced block there does not fail loudly either. So
+`src/lib/duck/observation.test.ts` holds the TypeScript builder to Python's
+answer slot by slot, and `src/lib/duck/policy-golden.test.ts` runs the shipped
+graph under `onnxruntime-web` and holds it to the actions desktop
+`onnxruntime` gave for the same observations — which is what makes the baked
+motion and a future live simulation the same robot.
 
 #### What the bake has to get right
 

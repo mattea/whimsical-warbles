@@ -16,6 +16,7 @@ import argparse
 import json
 import math
 import pathlib
+import shutil
 
 import mujoco
 import numpy as np
@@ -565,7 +566,8 @@ def bake_policy_golden(duck_root: pathlib.Path, obs_golden: dict,
     browser runtime agrees with the desktop one, not a survey of the policies.
     """
     name = "alpha_walking.onnx"
-    session = ort.InferenceSession(str(duck_root / "policies" / name))
+    path = duck_root / "policies" / name
+    session = ort.InferenceSession(str(path))
 
     cases = obs_golden["cases"]
     step = max(1, len(cases) // n)
@@ -580,7 +582,7 @@ def bake_policy_golden(duck_root: pathlib.Path, obs_golden: dict,
             "action": [float(v) for v in action],
         })
 
-    return {"policy": name, "cases": out}
+    return {"policy": name, "bytes": path.stat().st_size, "cases": out}
 
 
 def main() -> None:
@@ -611,6 +613,13 @@ def main() -> None:
     (args.fixtures / "policy-golden.json").write_text(json.dumps(policy_golden))
     print(f"policy-golden.json: {len(policy_golden['cases'])} cases "
           f"of {policy_golden['policy']}")
+
+    # The policy itself, beside its fixture. onnxruntime-web has to be handed the
+    # real graph for the golden test to mean anything, and a test that depends on
+    # a checkout of microduck being present is a test that stops being run.
+    shutil.copyfile(args.microduck / "policies" / policy_golden["policy"],
+                    args.fixtures / policy_golden["policy"])
+    print(f"{policy_golden['policy']}: {policy_golden['bytes'] / 1024:.0f} KB")
 
     clips = bake_clips(model, args.microduck)
     path = args.out / "clips.json"
