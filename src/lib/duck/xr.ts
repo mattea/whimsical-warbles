@@ -88,6 +88,28 @@ export const AR_SESSION_INIT: XRSessionInit = {
   optionalFeatures: ['hit-test', 'local-floor'],
 };
 
+/**
+ * The AR session init, with an optional DOM overlay for on-screen controls.
+ *
+ * A phone in AR has no keyboard, so without this the pugglenaut can be placed
+ * on your floor and then not driven anywhere -- a viewer rather than a lab.
+ * `dom-overlay` asks the UA to composite an HTML element over the camera feed,
+ * which is the only way to get a control surface on a handset.
+ *
+ * Optional, never required: `dom-overlay` is unevenly supported (a headset with
+ * hand tracking has no use for it) and a required feature that is missing kills
+ * the whole session. If it is not granted, AR still works -- placement and
+ * viewing -- and the controls simply are not composited.
+ */
+export function arSessionInit(overlayRoot?: Element | null): XRSessionInit {
+  if (!overlayRoot) return AR_SESSION_INIT;
+  return {
+    optionalFeatures: ['hit-test', 'local-floor', 'dom-overlay'],
+    // The cast is because the DOM overlay init is not in every lib.dom yet.
+    domOverlay: { root: overlayRoot },
+  } as XRSessionInit;
+}
+
 /** VR session request. No hit-test: the floor is virtual and we choose it. */
 export const VR_SESSION_INIT: XRSessionInit = {
   optionalFeatures: ['local-floor'],

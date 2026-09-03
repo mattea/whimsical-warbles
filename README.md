@@ -53,8 +53,10 @@ Pages (`src/pages/`):
     a recording.
   - **Live** (opt-in, ~4 MB) — real MuJoCo compiled to WebAssembly, stepping
     the actual robot model in a Web Worker, with the shipped policy choosing
-    joint targets fifty times a second. Nothing is a recording. Shove it and it
-    falls over, then switches to the stand-up policy and gets itself back up.
+    joint targets fifty times a second. Nothing is a recording. Boop it and a
+    real impulse goes into the trunk: it falls over, and the walking policy
+    cannot get up, so the runtime switches to the stand-up policy and it picks
+    itself off the floor.
 
   It is also viewable in **AR** on a phone or headset, at real 25 cm scale.
   See [`docs/superpowers/specs/`](./docs/superpowers/specs/) for the design, and

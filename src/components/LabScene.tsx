@@ -5,6 +5,7 @@ import { createPugglenaut, PALETTE, type Rig } from '../lib/duck/pugglenaut';
 import type { DuckTree } from '../lib/duck/tree';
 import {
   AR_SESSION_INIT,
+  arSessionInit,
   detectXRSupport,
   floorHeight,
   NO_XR,
@@ -40,6 +41,20 @@ export interface LabSceneProps {
   running: boolean;
   reducedMotion: boolean;
   onFps?: (fps: number) => void;
+  /**
+   * Element to composite over the camera feed in AR, via `dom-overlay`.
+   *
+   * A ref rather than the element, because the scene mounts before the console
+   * has finished laying out and the session is not requested until a tap.
+   */
+  overlayRoot?: { current: HTMLElement | null };
+  /**
+   * Called when an immersive session starts or ends.
+   *
+   * The console needs it because in a session the on-screen pad is the only
+   * control surface there is, whatever kind of pointer the device claims.
+   */
+  onImmersive?: (immersive: boolean) => void;
 }
 
 /** Never advance more than this much simulated time in one frame. */
@@ -59,15 +74,27 @@ const AR_FALLBACK_DISTANCE = 0.6;
 const RETICLE_INNER = 0.045;
 const RETICLE_OUTER = 0.055;
 
-export default function LabScene({ link, tree, running, reducedMotion, onFps }: LabSceneProps) {
+export default function LabScene({
+  link,
+  tree,
+  running,
+  reducedMotion,
+  onFps,
+  overlayRoot,
+  onImmersive,
+}: LabSceneProps) {
   const holder = useRef<HTMLDivElement>(null);
   // Read inside the animation loop so changing them does not rebuild the scene.
   const runningRef = useRef(running);
   const reducedRef = useRef(reducedMotion);
   const fpsRef = useRef(onFps);
+  const overlayRefLatest = useRef(overlayRoot);
+  const immersiveRef = useRef(onImmersive);
   runningRef.current = running;
   reducedRef.current = reducedMotion;
   fpsRef.current = onFps;
+  overlayRefLatest.current = overlayRoot;
+  immersiveRef.current = onImmersive;
 
   // Which immersive modes this device will grant. Starts at "none", so the
   // control is absent until a probe says otherwise -- the desktop default.
@@ -144,7 +171,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
     // Six metres, in 10 cm cells. The cell size is the same as it always was
     // and is deliberately real -- it reads as scale, and in VR it is a floor
     // someone is standing on. The extent grew for the live simulator: playback
-    // ambles, but a shove sends the pugglenaut a metre or more, and off the old
+    // ambles, but a boop sends the pugglenaut a metre or more, and off the old
     // two-metre grid the chase camera showed it lying in an empty void with no
     // floor to have fallen onto. MuJoCo's own plane is infinite, so nothing
     // about the physics changes here; only how much of it you can see.
@@ -379,6 +406,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
       hitTestSource = null;
       xrSessionMode = null;
       placed = false;
+      immersiveRef.current?.(false);
       selectPending = false;
       hitReady = false;
       reticle.visible = false;
@@ -412,7 +440,9 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
       try {
         const session = await navigator.xr.requestSession(
           mode,
-          mode === 'immersive-ar' ? AR_SESSION_INIT : VR_SESSION_INIT,
+          mode === 'immersive-ar'
+            ? arSessionInit(overlayRefLatest.current?.current ?? null)
+            : VR_SESSION_INIT,
         );
         // Settle the reference space BEFORE handing the session over: three's
         // setSession awaits requestReferenceSpace and rejects if the type is
@@ -429,6 +459,7 @@ export default function LabScene({ link, tree, running, reducedMotion, onFps }: 
         xrSessionMode = mode;
         placed = false;
         selectPending = false;
+        immersiveRef.current?.(true);
         // Nothing is drawn until the user has chosen a spot. Without this the
         // Z-up rig would spend the first frames lying on its side at the XR
         // origin, which looks like a broken robot rather than an unplaced one.

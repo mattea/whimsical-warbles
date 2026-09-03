@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { DuckState } from './link';
 import {
   createSimLink,
-  DEFAULT_SHOVE,
+  DEFAULT_BOOP,
   loadSimAssets,
   parseMjcfRefs,
   type SimLink,
@@ -297,11 +297,11 @@ describe('commands', () => {
   });
 });
 
-describe('shove and reset', () => {
-  it('shoves with the tuned impulse by default', () => {
+describe('boop and reset', () => {
+  it('boops with the tuned impulse by default', () => {
     const { fake, link } = boot();
     link.push();
-    expect(fake.last('push')?.impulse).toEqual(DEFAULT_SHOVE);
+    expect(fake.last('push')?.impulse).toEqual(DEFAULT_BOOP);
   });
 
   it('takes a caller-supplied impulse', () => {
