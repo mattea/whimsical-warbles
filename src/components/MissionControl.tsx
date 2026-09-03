@@ -161,7 +161,7 @@ export default function MissionControl({ open, onClose }: Props) {
             /* storage may be unavailable */
           }
           window.dispatchEvent(new CustomEvent('pugglenaut:screensaver', { detail: { on } }));
-          print({ kind: 'out', text: `screensaver ${arg}. ${on ? '(idles in after ~45s)' : ''}`.trim() });
+          print({ kind: 'out', text: `screensaver ${arg}. ${on ? '(previews now; returns after ~30s idle)' : ''}`.trim() });
         }
         break;
       }
