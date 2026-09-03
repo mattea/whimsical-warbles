@@ -1,5 +1,18 @@
 <mujoco model="microduck">
-  <compiler angle="radian" meshdir="assets" autolimits="true" />
+  <!-- usethread="false" is load-bearing for the browser, not a tuning knob.
+       MuJoCo's compiler parallelises mesh processing, and this model has nine
+       collision meshes, so mj_loadXML spawns six pthreads. In wasm a pthread is
+       a Worker sharing a SharedArrayBuffer, and SharedArrayBuffer needs the
+       page to be cross-origin isolated -- COOP/COEP headers GitHub Pages cannot
+       send. Without this attribute the compile dies with "thread constructor
+       failed: Resource temporarily unavailable" in every browser and works fine
+       in node, which is the worst possible way for it to fail.
+
+       It costs nothing. Compiling single-threaded is the same 0.45 s, and the
+       resulting model is bit-identical: every keyframe, every mass and inertia,
+       every mesh vertex and face, and all 495,372 values of the collision BVH
+       compare equal against a compile with threads. -->
+  <compiler angle="radian" meshdir="assets" autolimits="true" usethread="false" />
   <default>
     <default class="microduck">
       <joint frictionloss="0.1" armature="0.005" />

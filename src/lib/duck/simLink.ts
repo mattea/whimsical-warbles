@@ -54,6 +54,22 @@ export interface SimWorkerLike {
   terminate(): void;
 }
 
+/**
+ * A worker's `error` event, which the interface above deliberately does not
+ * describe.
+ *
+ * It has to be listened for: a worker that fails to *load* -- a bad URL, a
+ * syntax error, a module import the browser refuses -- never sends a message,
+ * so the ready promise would hang forever with the button stuck on "loading".
+ * But typing it as a second `addEventListener` overload would make the
+ * overloads non-optional together, and then every test double would have to
+ * implement an event it can never fire. So it is reached through a cast, at
+ * one call site, guarded by an optional call.
+ */
+interface ErrorCapable {
+  addEventListener?(type: 'error', listener: (event: { message?: string }) => void): void;
+}
+
 /** What the worker reports once the model is compiled and the loop is running. */
 export interface SimReady {
   /** `mj_versionString()`. The npm package says 3.1.16; the engine says 3.5.1. */
@@ -209,6 +225,12 @@ export function createSimLink(options: SimLinkOptions): SimLink {
         onError?.(message.message, message.fatal);
         break;
     }
+  });
+
+  (worker as unknown as ErrorCapable).addEventListener?.('error', (event) => {
+    const message = event.message ?? 'the physics worker failed to load';
+    if (!settled) rejectReady(new Error(message));
+    onError?.(message, true);
   });
 
   // Sent immediately: the worker cannot do anything else until it has these,

@@ -26,7 +26,10 @@ import {
 function fakeWorker() {
   const sent: SimRequest[] = [];
   const transfers: (Transferable[] | undefined)[] = [];
-  let listener: ((event: { data: SimResponse }) => void) | null = null;
+  // Keyed by type: the link listens for both `message` and the worker's own
+  // `error`, and a double that kept only the last listener would silently
+  // swallow every state frame.
+  const listeners = new Map<string, (event: never) => void>();
   let terminated = false;
 
   const worker: SimWorkerLike = {
@@ -34,8 +37,8 @@ function fakeWorker() {
       sent.push(message);
       transfers.push(transfer);
     },
-    addEventListener(_type, cb) {
-      listener = cb;
+    addEventListener(type: string, cb: (event: never) => void) {
+      listeners.set(type, cb);
     },
     terminate() {
       terminated = true;
@@ -50,7 +53,16 @@ function fakeWorker() {
       return terminated;
     },
     reply(message: SimResponse) {
-      listener?.({ data: message });
+      (listeners.get('message') as ((e: { data: SimResponse }) => void) | undefined)?.({
+        data: message,
+      });
+    },
+    /** Fire the worker's own `error` event, as a failed script load would. */
+    failToLoad(message: string) {
+      (listeners.get('error') as ((e: { message?: string }) => void) | undefined)?.({ message });
+    },
+    listens(type: string) {
+      return listeners.has(type);
     },
     last<T extends SimRequest['type']>(type: T) {
       const found = [...sent].reverse().find((m) => m.type === type);
@@ -132,6 +144,15 @@ describe('startup', () => {
     const { fake, link } = boot();
     fake.reply({ type: 'error', message: 'the solver diverged', fatal: false });
     await expect(link.ready()).resolves.toBeDefined();
+  });
+
+  it('rejects ready when the worker script itself will not load', async () => {
+    const onError = vi.fn();
+    const { fake, link } = makeLink({ onError });
+    expect(fake.listens('error')).toBe(true);
+    fake.failToLoad('Failed to fetch dynamically imported module');
+    await expect(link.ready()).rejects.toThrow(/dynamically imported module/);
+    expect(onError).toHaveBeenCalledWith('Failed to fetch dynamically imported module', true);
   });
 
   it('reports errors to the caller, fatal or not', () => {
