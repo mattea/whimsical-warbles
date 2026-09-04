@@ -180,6 +180,30 @@ export default function MissionControl({ open, onClose }: Props) {
         }
         break;
       }
+      // Hidden: unlocks the Cosmic Radio genre pack (EDM, dubstep, DnB, rock,
+      // classical, chiptune, lo-fi, synthwave) and swaps the station chips for
+      // a full dropdown. Deliberately absent from `help`.
+      case 'sensory-overload':
+      case 'sensory': {
+        const on = arg !== 'off';
+        try {
+          localStorage.setItem('pugglenaut-radio-pack', on ? 'on' : 'off');
+        } catch {
+          /* storage may be unavailable */
+        }
+        window.dispatchEvent(new CustomEvent('pugglenaut:radiopack', { detail: { on } }));
+        if (on) {
+          print(
+            { kind: 'sys', text: '*** SENSORY OVERLOAD ENGAGED ***' },
+            { kind: 'out', text: 'cosmic radio: 9 extra stations patched into the dial.' },
+            { kind: 'out', text: 'edm · dubstep · drum&bass · rock · classical · chiptune ×2 · lo-fi · synthwave' },
+            { kind: 'out', text: 'head to the home page and open the dropdown. (`sensory-overload off` to undo)' },
+          );
+        } else {
+          print({ kind: 'out', text: 'sensory overload disengaged — back to the classic four.' });
+        }
+        break;
+      }
       case 'roll':
         barrelRoll();
         print({ kind: 'out', text: '…doing a barrel roll. 🌀' });
