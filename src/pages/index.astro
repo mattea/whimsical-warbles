@@ -24,7 +24,7 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
       </p>
       <div class="cluster">
         <Badge tone="magenta" blink>new!</Badge>
-        <Badge tone="teal">v0.1</Badge>
+        <Badge tone="teal">v1.0</Badge>
         <Badge tone="violet">astro + retropolis</Badge>
       </div>
     </header>
@@ -41,8 +41,10 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
       <Window title="launch-bay.exe" icon="rocket" status="Systems nominal.">
         <div class="stack" style="gap: 12px;">
           <p style="margin: 0;">
-            The launch bay is an interactive React island — everything else on
-            this page renders to static HTML and ships no JavaScript.
+            Static HTML until it needs to be otherwise: the moving parts here —
+            this launch bay, the telemetry, the radio, the boopable puggle —
+            are React islands that hydrate only once you scroll them into view.
+            Your launches are remembered in this browser.
           </p>
           <LaunchControl client:visible />
         </div>
@@ -53,7 +55,7 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
       </Window>
     </div>
 
-    <Window title="cosmic-radio.fm" icon="music" status="Synthesized live — no audio files.">
+    <Window title="cosmic-radio.fm" icon="music" status="Synthesized live — no audio files, no loop.">
       <CosmicRadio client:visible />
     </Window>
 
@@ -73,6 +75,14 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
           comet in <em>Comet Snake</em>. High-score chasing, one puggle.
         </p>
         <HyperLink href="/game">Enter the arcade →</HyperLink>
+      </Card>
+      <Card title="Waddle Lab" icon="gear" tone="lime">
+        <p style="margin: 0 0 12px;">
+          Drive the pugglenaut on a real robot's reinforcement-learning gait —
+          walk, turn, kick and sit, replayed on <em>Microduck</em>'s exact
+          skeleton. Physics in the browser, and AR if your phone's up for it.
+        </p>
+        <HyperLink href="/lab">Open the Waddle Lab →</HyperLink>
       </Card>
       <Card title="Oracle" icon="sparkle" tone="sunshine">
         <p style="margin: 0 0 12px;">
@@ -118,8 +128,10 @@ import { Window, Card, Badge, Marquee, Divider, HyperLink } from '@retropolis/ui
     <section class="stack" style="gap: 8px;">
       <p class="hero-tagline" style="margin: 0;">
         Poke around: flip the <strong>theme lab</strong> up top, tint the sky to
-        your local hour, or press <kbd>`</kbd> to open mission control. There may
-        be a cheat code or two hiding in here. 🛰️
+        your local hour, or press <kbd>`</kbd> to open mission control. The
+        windows on this site are real windows too — minimize, maximize and close
+        them from their title bars. There may be a cheat code or two hiding in
+        here. 🛰️
       </p>
     </section>
   </main>
