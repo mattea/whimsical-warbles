@@ -222,3 +222,41 @@
     transition: none;
   }
 }
+
+/* --- Station dropdown (shown once the genre pack is unlocked) ------------ */
+/* Thirteen chips would swamp the panel, so the unlocked picker is a select.
+   Styled to match the chassis rather than the OS default. */
+
+.pg-radio-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-radio-select-label {
+  font-family: var(--rp-font-pixel);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rp-text-muted);
+  flex: none;
+}
+
+.pg-radio-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--rp-font-mono);
+  font-size: 0.95rem;
+  line-height: 1.2;
+  padding: 6px 8px;
+  color: var(--rp-text);
+  background: var(--rp-bg);
+  border: 2px solid var(--rp-border);
+  border-radius: var(--rp-radius-sm, 3px);
+  cursor: pointer;
+}
+
+.pg-radio-select:focus-visible {
+  outline: 3px solid var(--rp-teal);
+  outline-offset: 2px;
+}
