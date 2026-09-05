@@ -47,10 +47,38 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
+/**
+ * Track a source so it can be hard-stopped on teardown, and forget it again
+ * once it ends.
+ *
+ * This deliberately uses addEventListener rather than assigning `.onended`.
+ * Every voice in voices.ts sets its own `.onended` to disconnect its nodes,
+ * and it does so *after* registering — so an assignment here would be silently
+ * replaced. That is exactly what happened: percussion hits and single-voice
+ * tones were never removed from the live set, it grew without bound, and once
+ * it crossed MAX_VOICES the crowded guard below started skipping every pitched
+ * voice while drums (which it does not gate) carried on. The audible result
+ * was a track collapsing to drums alone after roughly ten seconds.
+ */
+export function trackSource(
+  live: Set<AudioScheduledSourceNode>,
+  node: AudioScheduledSourceNode,
+): void {
+  live.add(node);
+  node.addEventListener('ended', () => { live.delete(node); }, { once: true });
+}
+
 /** Look-ahead window and polling interval for the scheduler. */
 const LOOKAHEAD_S = 0.12;
 const TICK_MS = 25;
-/** Hard ceiling on simultaneously-scheduled sources, to protect weak devices. */
+/**
+ * Soft ceiling on simultaneously-sounding sources, to protect weak devices.
+ * With correct bookkeeping a busy station peaks around 30, so this is a genuine
+ * runaway guard rather than something hit in normal play. When it does bite it
+ * thins density (fewer chord tones, no supersaw stacks) instead of muting
+ * everything pitched — losing the harmony entirely and leaving bare drums is a
+ * far worse failure than a slightly thinner mix.
+ */
 const MAX_VOICES = 220;
 
 interface TrackState {
@@ -260,14 +288,7 @@ export class RadioEngine {
       ctx: this.ctx as AudioContext,
       dest,
       noise: this.noise as AudioBuffer,
-      register: (n) => {
-        this.live.add(n);
-        const prev = n.onended;
-        n.onended = (e) => {
-          this.live.delete(n);
-          if (typeof prev === 'function') prev.call(n, e);
-        };
-      },
+      register: (n) => trackSource(this.live, n),
     };
   }
 
@@ -395,7 +416,6 @@ export class RadioEngine {
           riser(drumEnv, time, secondsPerBeat * 4 * (track.bars ?? 1), track.peak ?? 0.18);
           break;
         case 'wobble': {
-          if (crowded) break;
           const st2 = this.trackStates[ti];
           const rate = track.rates[bar % track.rates.length];
           // Rate is in notes-per-beat; convert to an LFO frequency in Hz.
@@ -410,7 +430,6 @@ export class RadioEngine {
           break;
         }
         case 'tone': {
-          if (crowded) break;
           const st2 = this.trackStates[ti];
           const dur = stepDur * (track.len ?? 2);
           const common = {
@@ -424,11 +443,14 @@ export class RadioEngine {
             drive: track.drive,
           };
           if (track.pick === 'chord') {
-            // Play the whole chord. Slightly lower per-note gain so stacking
-            // four voices doesn't overshoot the mix.
             const oct = (track.octave ?? 0) * 12;
-            tones.forEach((t) => tone(musicEnv, time, midiToHz(t + oct), common));
+            // Under load, thin the chord to its root and third/fifth rather
+            // than dropping the harmony altogether.
+            const picked = crowded ? tones.slice(0, 2) : tones;
+            picked.forEach((t) => tone(musicEnv, time, midiToHz(t + oct), common));
           } else {
+            // A supersaw is seven oscillators for one note; shed those first.
+            if (crowded && (track.voices ?? 1) > 2) break;
             const midi = this.pickPitch(track, tones, st, st2, stepInBar, rng);
             tone(musicEnv, time, midiToHz(midi), common);
           }
