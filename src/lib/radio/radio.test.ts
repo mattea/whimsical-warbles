@@ -8,7 +8,7 @@ import {
   CHORD_SHAPES,
 } from './theory';
 import { ALL_STATIONS, GENRE_STATIONS, WALK_STATIONS } from './stations';
-import { mulberry32 } from './engine';
+import { mulberry32, trackSource } from './engine';
 
 describe('midiToHz', () => {
   it('anchors A4 at 440 Hz', () => {
@@ -88,6 +88,61 @@ describe('mulberry32', () => {
     for (let i = 0; i < 10000; i++) buckets[Math.floor(r() * 10)]++;
     // Each decile should hold roughly a tenth of the samples.
     for (const b of buckets) expect(b).toBeGreaterThan(700);
+  });
+});
+
+describe('trackSource', () => {
+  /**
+   * A stand-in for an AudioScheduledSourceNode: an EventTarget that also
+   * invokes an `onended` property handler when it ends, the way the real node
+   * does. That dual dispatch is the whole point of these tests.
+   */
+  class FakeSource extends EventTarget {
+    onended: ((e: Event) => void) | null = null;
+    end() {
+      const ev = new Event('ended');
+      this.dispatchEvent(ev);
+      this.onended?.(ev);
+    }
+  }
+
+  it('tracks a source and forgets it once it ends', () => {
+    const live = new Set<AudioScheduledSourceNode>();
+    const n = new FakeSource();
+    trackSource(live, n as unknown as AudioScheduledSourceNode);
+    expect(live.size).toBe(1);
+    n.end();
+    expect(live.size).toBe(0);
+  });
+
+  it('survives a voice assigning its own onended afterwards', () => {
+    // Regression: every voice in voices.ts sets `.onended` to disconnect its
+    // nodes, and does so AFTER registering. When the bookkeeping was installed
+    // by assigning `.onended` it was silently clobbered, so nothing was ever
+    // removed from the live set. It grew without bound until the voice cap
+    // tripped, at which point pitched voices were skipped but drums were not —
+    // every track audibly collapsed to drums alone after ~10 seconds.
+    const live = new Set<AudioScheduledSourceNode>();
+    const n = new FakeSource();
+    trackSource(live, n as unknown as AudioScheduledSourceNode);
+
+    let voiceCleanupRan = false;
+    n.onended = () => { voiceCleanupRan = true; };
+
+    n.end();
+    expect(live.size, 'the live set must not leak').toBe(0);
+    expect(voiceCleanupRan, "the voice's own cleanup must still run").toBe(true);
+  });
+
+  it('does not leak across many short-lived sources', () => {
+    const live = new Set<AudioScheduledSourceNode>();
+    for (let i = 0; i < 5000; i++) {
+      const n = new FakeSource();
+      trackSource(live, n as unknown as AudioScheduledSourceNode);
+      n.onended = () => { /* what a real voice does */ };
+      n.end();
+    }
+    expect(live.size).toBe(0);
   });
 });
 
